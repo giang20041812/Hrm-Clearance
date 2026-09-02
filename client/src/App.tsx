@@ -1,5 +1,11 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Suspense, useEffect, type ReactNode } from 'react';
+import { ToastProvider } from '@/contexts/ToastContext';
+import { ConfirmProvider } from '@/contexts/ConfirmContext';
+import { ViewModeProvider } from '@/contexts/ViewModeContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
+import { IsolatedBoundary } from '@/components/PageErrorBoundary';
+import { InstallPrompt } from '@/components/InstallPrompt';
 import { ADMIN_NAV_ITEMS } from '@/config/navigation';
 
 // Mỗi module được tải khi người dùng thực sự mở tới. Việc này giữ lần tải đầu
@@ -147,9 +153,19 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <ThemeProvider>
+        <ToastProvider>
+          <ConfirmProvider>
+                <ViewModeProvider>
                   <Suspense fallback={<AppLoading />}>
                     <AppRoutes />
                   </Suspense>
+                  {/* Dải mời cài app — chỉ hiện khi trình duyệt thực sự cài được. */}
+                  <IsolatedBoundary><InstallPrompt /></IsolatedBoundary>
+                </ViewModeProvider>
+          </ConfirmProvider>
+        </ToastProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 }
