@@ -1,0 +1,984 @@
+/* Font được nạp bằng <link preconnect/preload> trong index.html — nhanh hơn
+   @import ở đây, vì @import bắt trình duyệt phải tải xong CSS này rồi mới biết
+   đường đi lấy font. */
+@import 'tailwindcss';
+/* Ánh xạ class màu sáng -> tối (sinh bởi tools/gen-dark-theme.mjs) — HMR sync. */
+@import './dark-theme.css';
+
+/* Dark mode bật bằng class `.dark` trên <html> (ThemeContext), không theo
+   `prefers-color-scheme` của Tailwind mặc định — người dùng phải tự bấm nút
+   đổi giao diện và lựa chọn đó được nhớ lại, không phụ thuộc cấu hình máy. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Space Grotesk', 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+
+  /* --- Mau chinh cua he thong ---------------------------------------------
+     Do thuong hieu Huy Phong (#BF1F2B, lay thang tu file logo cong ty).
+
+     Ma nguon co gan 550 cho viet `indigo-*` trai tren 52 file. KHONG sed hang
+     loat: sed se dung ca nhung cho co y dung indigo lam mau phu, va mot lan
+     doi y la phai sed nguoc lai. Tailwind 4 cho dinh nghia lai chinh bang mau
+     `indigo` o day - moi lop `bg-indigo-600`, `text-indigo-700`... deu lay
+     gia tri moi, doi mau ca app bang mot cho, va doi y thi xoa khoi nay di
+     la ve nhu cu.
+
+     Bac 600 la mau logo. Tren nen trang no dat 6.0:1 - du chuan AA cho chu
+     thuong. Cac bac con lai dung chung sac do do, chi doi do sang.
+
+     LUU Y: `red-*` cua Tailwind van la mau canh bao/xoa (#DC2626 o bac 600).
+     Do thuong hieu dam hon han nen van phan biet duoc, nhung khi dat mot nut
+     chinh canh mot nut Xoa thi nen de nut Xoa o kieu vien thay vi nen dac. */
+  --color-indigo-50:  #fef2f3;
+  --color-indigo-100: #fde1e3;
+  --color-indigo-200: #fac5c9;
+  --color-indigo-300: #f39aa1;
+  --color-indigo-400: #e66a76;
+  --color-indigo-500: #d23d4b;
+  --color-indigo-600: #bf1f2b;
+  --color-indigo-700: #a01420;
+  --color-indigo-800: #85141d;
+  --color-indigo-900: #6f151c;
+  --color-indigo-950: #3d080c;
+
+  --color-admin-primary: #BF1F2B;
+  --color-admin-primary-hover: #A01420;
+  --color-admin-bg: #F8FAFC;
+  --color-admin-sidebar: #0F172A;
+  --color-admin-text: #1E293B;
+  --color-admin-muted: #64748B;
+  --color-content-surface: #F8FAFC;
+
+  /* Staff palette */
+  --color-staff-primary: #BF1F2B;
+  --color-staff-primary-hover: #A01420;
+  --color-staff-bg: #F8FAFC;
+  --color-staff-sidebar: #0F172A;
+  --color-staff-text: #0F172A;
+  --color-staff-muted: #64748B;
+  --color-staff-active-bg: #BF1F2B;
+  --color-staff-active-text: #FFFFFF;
+
+  /* Semantic */
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+  --color-info: #3B82F6;
+
+  /* Custom shadows - Subtle & Professional */
+  --shadow-soft: 0 1px 2px 0 rgb(10 10 11 / 0.02);
+  --shadow-card: 0 1px 3px 0 rgb(10 10 11 / 0.04), 0 2px 8px -2px rgb(10 10 11 / 0.02);
+  --shadow-lifted: 0 10px 20px -5px rgb(10 10 11 / 0.05), 0 4px 6px -2px rgb(10 10 11 / 0.02);
+  --shadow-glow-blue: 0 8px 24px -6px rgb(191 31 43 / 0.35); /* Do thuong hieu */
+  --shadow-glow-emerald: 0 8px 24px -6px rgb(16 185 129 / 0.4);
+}
+
+html {
+  font-family: 'Inter', system-ui, sans-serif;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: #f8fafc;
+  color: #0f172a;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+.dark body {
+  background: #0b1120;
+  color: #e2e8f0;
+}
+
+/* Control chưa có class nền (ô lọc, ô ngày, select...) mặc định trắng của trình
+   duyệt. `:where` giữ specificity 0 nên class của từng ô vẫn thắng. */
+.dark { color-scheme: dark; }
+@layer base {
+  /* Đường kẻ đậm hơn và rõ nét cho tất cả các bảng */
+  table {
+    border-collapse: collapse;
+    border-color: #cbd5e1;
+  }
+  table th,
+  table td {
+    border-color: #cbd5e1;
+  }
+  table thead th,
+  table th {
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: normal;
+  }
+  table thead th,
+  table thead tr {
+    border-bottom-color: #94a3b8;
+  }
+  table tfoot th,
+  table tfoot td,
+  table tfoot tr {
+    border-top-color: #94a3b8;
+  }
+
+  /* Đường kẻ rõ ràng hơn cho tất cả form điền */
+  :where(input, select, textarea):not([type='checkbox'], [type='radio'], [type='range'], [type='color']) {
+    border-color: #cbd5e1;
+  }
+  :where(input, select, textarea):not([type='checkbox'], [type='radio'], [type='range'], [type='color']):hover {
+    border-color: #94a3b8;
+  }
+
+  /* Đường kẻ phân cách cho tất cả các danh sách (lists / divide-y) */
+  :where(ul, ol).divide-y > *,
+  :where(.divide-y) > * {
+    border-color: #cbd5e1;
+  }
+
+  /* Dark mode */
+  :where(.dark) table {
+    border-color: #334155;
+  }
+  :where(.dark) table th,
+  :where(.dark) table td {
+    border-color: #334155;
+  }
+  :where(.dark) table thead th,
+  :where(.dark) table thead tr {
+    border-bottom-color: #475569;
+  }
+  :where(.dark) table tfoot th,
+  :where(.dark) table tfoot td,
+  :where(.dark) table tfoot tr {
+    border-top-color: #475569;
+  }
+  :where(.dark) :where(input, select, textarea):not([type='checkbox'], [type='radio'], [type='range'], [type='color']) {
+    background-color: #0f172a;
+    color: #e2e8f0;
+    border-color: #475569;
+  }
+  :where(.dark) :where(input, select, textarea):not([type='checkbox'], [type='radio'], [type='range'], [type='color']):hover {
+    border-color: #64748b;
+  }
+  :where(.dark) :where(input, textarea)::placeholder { color: #64748b; }
+  :where(.dark) option { background-color: #0f172a; color: #e2e8f0; }
+  :where(.dark) :where(th) { color: #cbd5e1; }
+  :where(.dark) :where(ul, ol).divide-y > *,
+  :where(.dark) :where(.divide-y) > * {
+    border-color: #334155;
+  }
+}
+
+/* ===========================================================================
+   TĂNG CƯỜNG ĐỘ ĐẬM ĐƯỜNG KẺ CHO BẢNG, FORM VÀ DANH SÁCH (TOÀN HỆ THỐNG)
+   =========================================================================== */
+table .border-slate-100,
+table .border-slate-200,
+table .border-slate-300,
+table .border-gray-100,
+table .border-gray-200,
+ul.divide-slate-50 > :not(:last-child),
+ul.divide-slate-100 > :not(:last-child),
+ul.divide-slate-200 > :not(:last-child),
+.divide-slate-50 > :not(:last-child),
+.divide-slate-100 > :not(:last-child),
+.divide-slate-200 > :not(:last-child) {
+  border-color: #cbd5e1;
+}
+
+.dark table .border-slate-100,
+.dark table .border-slate-200,
+.dark table .border-slate-300,
+.dark table .border-slate-700,
+.dark ul.divide-slate-50 > :not(:last-child),
+.dark ul.divide-slate-100 > :not(:last-child),
+.dark ul.divide-slate-200 > :not(:last-child),
+.dark ul.divide-slate-800 > :not(:last-child),
+.dark .divide-slate-50 > :not(:last-child),
+.dark .divide-slate-100 > :not(:last-child),
+.dark .divide-slate-200 > :not(:last-child),
+.dark .divide-slate-800 > :not(:last-child) {
+  border-color: #3b4a61;
+}
+
+/* ===========================================================================
+   ĐỘ ĐẬM ĐƯỜNG KẺ VÀ HIỂN THỊ NÉN GỌN (CAO MẬT ĐỘ) CHO BẢNG & DANH SÁCH
+   =========================================================================== */
+.payroll-module,
+.kpi-module,
+.timesheet-module,
+.attendance-module,
+[data-module='payroll'],
+[data-module='kpi'],
+[data-module='timesheet'],
+[data-module='attendance'] {
+  font-size: 0.8125rem; /* 13px gọn gàng */
+}
+
+/* Bảng trong Lương, KPI, Công: cỡ chữ gọn, chiều dài ngắn lại để hiển thị nhiều thông tin */
+.payroll-module table,
+.kpi-module table,
+.timesheet-module table,
+.attendance-module table,
+[data-module='payroll'] table,
+[data-module='kpi'] table,
+[data-module='timesheet'] table,
+[data-module='attendance'] table {
+  font-size: 0.75rem !important; /* 12px mật độ cao */
+}
+
+/* ===========================================================================
+   TIÊU ĐỀ BẢNG (TH, THEAD TH): XUỐNG TỐI ĐA 3 DÒNG, CHIỀU DÀI GỌN GÀNG
+   =========================================================================== */
+table th,
+table thead th,
+th {
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  word-break: normal !important;
+  line-height: 1.25 !important;
+  vertical-align: middle;
+}
+
+table th *,
+table thead th * {
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+table th .flex,
+table thead th .flex,
+table th .inline-flex,
+table thead th .inline-flex {
+  flex-wrap: wrap;
+}
+
+/* Khống chế tiêu đề văn bản tối đa 3 dòng (max ping 3 dòng) */
+table thead th span:not([class*='rounded']):not([class*='badge']):not([class*='tag']):not(.shrink-0),
+table thead th p,
+table thead th .line-clamp-3,
+.payroll-module table thead th span:not([class*='rounded']):not([class*='badge']):not([class*='tag']):not(.shrink-0),
+.kpi-module table thead th span:not([class*='rounded']):not([class*='badge']):not([class*='tag']):not(.shrink-0),
+.timesheet-module table thead th span:not([class*='rounded']):not([class*='badge']):not([class*='tag']):not(.shrink-0) {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Độ rộng tối thiểu gọn gàng cho các cột để hiển thị được nhiều cột hơn trên 1 trang */
+table thead th:not([class*='w-']):not([class*='min-w-']):not(.col-narrow),
+.payroll-module table thead th:not([class*='w-']):not([class*='min-w-']),
+.kpi-module table thead th:not([class*='w-']):not([class*='min-w-']),
+.timesheet-module table thead th:not([class*='w-']):not([class*='min-w-']) {
+  min-width: 55px;
+}
+
+/* ===========================================================================
+   ĐẦU MỤC CÁC BẢNG THEO TÔNG ĐỎ THƯƠNG HIỆU HUY PHONG (#BF1F2B) - NÉN GỌN
+   =========================================================================== */
+table thead tr,
+table thead th,
+.payroll-module table thead th,
+.kpi-module table thead th,
+.timesheet-module table thead th,
+.attendance-module table thead th,
+[data-module='payroll'] table thead th,
+[data-module='kpi'] table thead th,
+[data-module='timesheet'] table thead th,
+[data-module='attendance'] table thead th {
+  background-color: #fdf2f4 !important; /* Tông kem hồng ngọc thanh lịch */
+  color: #5c0f16 !important;            /* Chữ đỏ thẫm / mận chín sắc nét */
+  border-bottom: 2px solid #bf1f2b !important; /* Gạch đỏ thương hiệu #BF1F2B */
+  border-color: #eed5d8;
+  box-shadow: inset 0 -2px 0 #bf1f2b !important;
+  font-size: 0.75rem !important; /* 12px gọn gàng */
+  font-weight: 800 !important;
+  letter-spacing: 0.02em;
+  padding: 0.375rem 0.45rem !important; /* Padding gọn hơn nhiều */
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  word-break: normal !important;
+  line-height: 1.25 !important;
+  vertical-align: middle;
+}
+
+/* Các nhãn text bên trong thead th tự động ăn khớp màu chữ */
+table thead th span:not([class*='bg-']):not([class*='badge']):not([class*='tag']),
+table thead th div:not([class*='bg-']) {
+  color: inherit;
+}
+
+/* Chế độ Dark mode theo tông đỏ rượu vang / burgundy cao cấp */
+.dark table thead tr,
+.dark table thead th,
+.dark .payroll-module table thead th,
+.dark .kpi-module table thead th,
+.dark .timesheet-module table thead th,
+.dark .attendance-module table thead th,
+.dark [data-module='payroll'] table thead th,
+.dark [data-module='kpi'] table thead th,
+.dark [data-module='timesheet'] table thead th,
+.dark [data-module='attendance'] table thead th {
+  background-color: #201114 !important; /* Đỏ than thẫm sang trọng */
+  color: #fde8ea !important;            /* Chữ trắng ánh hồng ngọc */
+  border-bottom: 2.5px solid #e66a76 !important; /* Gạch đỏ ruby */
+  border-color: #4a1c22 !important;
+  box-shadow: inset 0 -2px 0 #e66a76 !important;
+}
+
+/* Cột dính cố định (sticky column như Nhân sự / Nhân viên) ăn khớp nền */
+table thead th.sticky,
+table thead th[class*='sticky'] {
+  background-color: #fdf2f4 !important;
+}
+.dark table thead th.sticky,
+.dark table thead th[class*='sticky'] {
+  background-color: #201114 !important;
+}
+
+/* Các ô dữ liệu trong bảng Lương, KPI, Công: chữ gọn gàng, chiều cao ngắn để hiển thị nhiều dòng */
+.payroll-module table tbody td,
+.kpi-module table tbody td,
+.timesheet-module table tbody td,
+.attendance-module table tbody td,
+[data-module='payroll'] table tbody td,
+[data-module='kpi'] table tbody td,
+[data-module='timesheet'] table tbody td,
+[data-module='attendance'] table tbody td {
+  font-size: 0.8125rem !important; /* 13px sắc nét, gọn gàng */
+  padding-top: 0.35rem !important;
+  padding-bottom: 0.35rem !important;
+  font-weight: 600;
+  border-color: #cbd5e1;
+}
+
+.dark .payroll-module table tbody td,
+.dark .kpi-module table tbody td,
+.dark .timesheet-module table tbody td,
+.dark .attendance-module table tbody td,
+.dark [data-module='payroll'] table tbody td,
+.dark [data-module='kpi'] table tbody td,
+.dark [data-module='timesheet'] table tbody td,
+.dark [data-module='attendance'] table tbody td {
+  border-color: #3b4a61;
+}
+
+/* Dòng tổng cộng tfoot trong Lương, KPI, Công */
+.payroll-module table tfoot td,
+.timesheet-module table tfoot td,
+.attendance-module table tfoot td,
+[data-module='payroll'] table tfoot td,
+[data-module='timesheet'] table tfoot td,
+[data-module='attendance'] table tfoot td {
+  font-size: 0.875rem !important; /* 14px */
+  font-weight: 800 !important;
+  border-top: 2px solid #94a3b8 !important;
+  border-color: #94a3b8;
+}
+
+.dark .payroll-module table tfoot td,
+.dark .timesheet-module table tfoot td,
+.dark .attendance-module table tfoot td,
+.dark [data-module='payroll'] table tfoot td,
+.dark [data-module='timesheet'] table tfoot td,
+.dark [data-module='attendance'] table tfoot td {
+  border-top: 2px solid #64748b !important;
+  border-color: #475569;
+}
+
+/* Ô nhập liệu trong Lương, KPI, Công: viền đậm hơn, chữ to đậm */
+.payroll-module :where(input, select, textarea),
+.kpi-module :where(input, select, textarea),
+.timesheet-module :where(input, select, textarea),
+.attendance-module :where(input, select, textarea),
+[data-module='payroll'] :where(input, select, textarea),
+[data-module='kpi'] :where(input, select, textarea),
+[data-module='timesheet'] :where(input, select, textarea),
+[data-module='attendance'] :where(input, select, textarea) {
+  font-size: 0.875rem; /* 14px */
+  font-weight: 600;
+  border-color: #94a3b8;
+}
+
+.dark .payroll-module :where(input, select, textarea),
+.dark .kpi-module :where(input, select, textarea),
+.dark .timesheet-module :where(input, select, textarea),
+.dark .attendance-module :where(input, select, textarea),
+.dark [data-module='payroll'] :where(input, select, textarea),
+.dark [data-module='kpi'] :where(input, select, textarea),
+.dark [data-module='timesheet'] :where(input, select, textarea),
+.dark [data-module='attendance'] :where(input, select, textarea) {
+  border-color: #475569;
+}
+
+/* ===== Application shell ===== */
+/* Sidebar nen sang.
+   `background-image` o day de len lop `bg-white` cua Tailwind (anh nen ve
+   tren mau nen), nen doi mau bang class thoi khong an - phai sua ca o day.
+   Giu mot vet xanh rat nhat o goc tren de mang sidebar khong phang lì. */
+.app-sidebar {
+  background-image:
+    radial-gradient(460px 280px at 12% -8%, rgb(59 130 246 / 0.09), transparent 64%),
+    linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  box-shadow: 14px 0 40px -38px rgb(15 23 42 / 0.35);
+}
+
+.dark .app-sidebar {
+  background-image:
+    radial-gradient(460px 280px at 12% -8%, rgb(59 130 246 / 0.12), transparent 64%),
+    linear-gradient(180deg, #0f172a 0%, #0b1120 100%);
+  box-shadow: 14px 0 40px -38px rgb(0 0 0 / 0.6);
+}
+
+.app-header {
+  box-shadow: 0 8px 30px -28px rgb(15 23 42 / 0.55);
+}
+
+.dark .app-header {
+  box-shadow: 0 8px 30px -28px rgb(0 0 0 / 0.75);
+}
+
+.page-content h2 {
+  letter-spacing: -0.02em;
+}
+
+.page-content table th {
+  letter-spacing: 0.035em;
+}
+
+.page-content table tbody tr {
+  transition: background-color 160ms ease;
+}
+
+.page-content table tbody tr:hover {
+  background-color: rgb(248 250 252 / 0.85);
+}
+
+.dark .page-content table tbody tr:hover {
+  background-color: rgb(30 41 59 / 0.6);
+}
+
+/* Giữ thanh thao tác/filter có thể cuộn ngang nhưng không lộ scrollbar thô. */
+.scrollbar-none {
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; background-clip: content-box; }
+
+.dark ::-webkit-scrollbar-thumb { background: #334155; }
+.dark ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+/* ===== Animations ===== */
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.5); }
+  70% { box-shadow: 0 0 0 20px rgba(5, 150, 105, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(5, 150, 105, 0); }
+}
+.pulse-ring { animation: pulse-ring 2s infinite; }
+
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, #f1f5f9 25%, #e9eef5 50%, #f1f5f9 75%);
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite linear;
+}
+
+.dark .skeleton {
+  background: linear-gradient(90deg, #1e293b 25%, #273449 50%, #1e293b 75%);
+  background-size: 1000px 100%;
+}
+
+@keyframes slide-in-right {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+.slide-in-right { animation: slide-in-right 0.3s ease-out; }
+
+@keyframes fade-out { from { opacity: 1; } to { opacity: 0; } }
+.fade-out { animation: fade-out 0.2s ease-out forwards; }
+
+@keyframes modal-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.modal-in { animation: modal-in 0.28s cubic-bezier(0.16, 1, 0.3, 1); }
+
+@keyframes page-fade-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+.page-fade-in { animation: page-fade-in 0.25s ease-out; }
+
+/* ===== Premium auth & UI animations ===== */
+@keyframes float-blob {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -40px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.95); }
+}
+.animate-blob { animation: float-blob 12s ease-in-out infinite; }
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fade-up 0.4s ease-out both; }
+
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+.delay-4 { animation-delay: 0.4s; }
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.animate-gradient { background-size: 200% 200%; animation: gradient-shift 15s ease infinite; }
+
+@keyframes shimmer-slide {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+/* Vệt sáng chỉ chạy khi rê chuột.
+   Trước đây nó lặp vô hạn trên MỌI nút chính, kể cả khi người dùng đang đọc
+   hoặc điền form — chuyển động không ngừng ở rìa tầm nhìn gây phân tán, và
+   giữ GPU hoạt động liên tục làm hao pin trên máy xách tay. */
+.btn-shine { position: relative; overflow: hidden; }
+.btn-shine::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 40%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.28), transparent);
+  transform: translateX(-100%);
+  opacity: 0;
+}
+.btn-shine:hover::after,
+.btn-shine:focus-visible::after {
+  opacity: 1;
+  animation: shimmer-slide 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes check-pop {
+  0% { transform: scale(0); }
+  80% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+.check-pop { animation: check-pop 0.3s ease-out; }
+
+@keyframes particle-rise {
+  0% { transform: translateY(0) translateX(0); opacity: 0; }
+  10% { opacity: 0.8; }
+  90% { opacity: 0.3; }
+  100% { transform: translateY(-120vh) translateX(30px); opacity: 0; }
+}
+.particle {
+  position: absolute; bottom: -10px; border-radius: 9999px;
+  background: rgba(255,255,255,0.15);
+  animation: particle-rise linear infinite;
+}
+
+/* ===== Glassmorphism ===== */
+.glass {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+.glass-dark {
+  background: rgba(15, 23, 42, 0.72);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.glass-nav {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+/* ===== Gradient text ===== */
+.text-gradient-blue {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.text-gradient-emerald {
+  background: linear-gradient(135deg, #10b981, #06b6d4);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ===== Gradient backgrounds ===== */
+.bg-gradient-admin {
+  background: #0f172a;
+}
+.bg-grid-pattern {
+  background-image:
+    linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ===== Card lift & glow ===== */
+.card-lift {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.card-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lifted);
+}
+
+/* ===== Hover underline nav ===== */
+.nav-hover {
+  position: relative;
+  transition: color 0.2s ease;
+}
+
+/* ===== Table row ===== */
+.table-row-hover {
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+.table-row-hover:hover { background-color: #f8fafc; }
+.dark .table-row-hover:hover { background-color: #1e293b; }
+
+/* ===========================================================================
+   Điều hướng bàn phím
+   ---------------------------------------------------------------------------
+   Toàn app dùng `focus:outline-none` để bỏ viền focus mặc định của trình duyệt,
+   nhưng ô nhập liệu thì được thay bằng ring, còn NÚT và LIÊN KẾT thì không —
+   nghĩa là người dùng bàn phím hoàn toàn không biết mình đang ở đâu.
+
+   `:focus-visible` chỉ kích hoạt khi điều hướng bằng bàn phím, nên bấm chuột
+   vẫn sạch sẽ như cũ.
+   =========================================================================== */
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible,
+[role='button']:focus-visible,
+[tabindex]:not([tabindex='-1']):focus-visible {
+  outline: 2px solid #bf1f2b;
+  outline-offset: 2px;
+  border-radius: 10px;
+}
+
+/* Nút trên nền tối (sidebar admin, cột trái trang đăng nhập) cần viền sáng. */
+.bg-gradient-admin a:focus-visible,
+.bg-gradient-admin button:focus-visible {
+  outline-color: #fff;
+}
+
+/* Bỏ qua nội dung lặp lại — chuẩn của mọi trang có sidebar. */
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 100;
+  padding: 0.625rem 1rem;
+  border-radius: 0.75rem;
+  background: #1e293b;
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: top 0.2s ease;
+}
+.skip-link:focus { top: 1rem; }
+
+/* ===========================================================================
+   DESKTOP — bảng dài
+   ---------------------------------------------------------------------------
+   Danh sách người dùng hay chấm công dài vài chục dòng thì tiêu đề cột trôi
+   mất khi cuộn, người xem không còn biết cột nào là cột nào. Ghim tiêu đề lại.
+   Chỉ áp dụng từ md trở lên — dưới đó bảng đã chuyển thành thẻ, không có tiêu đề.
+   =========================================================================== */
+@media (min-width: 768px) {
+  .table-cards thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #f8fafc;
+    box-shadow: inset 0 -1px 0 #e2e8f0;
+  }
+
+  .dark .table-cards thead th {
+    background: #0f172a;
+    box-shadow: inset 0 -1px 0 #334155;
+  }
+}
+
+/* ===========================================================================
+   MOBILE
+   =========================================================================== */
+
+/* iOS Safari TỰ PHÓNG TO cả trang khi người dùng chạm vào ô nhập có
+   font-size dưới 16px. Toàn bộ input của app đang là 14px (text-sm), nên mỗi
+   lần gõ là màn hình nhảy một cái rồi phải tự chụm tay thu lại.
+   16px là ngưỡng duy nhất chặn được hành vi này. */
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Vùng chạm tối thiểu 44×44px trên thiết bị cảm ứng (khuyến nghị của Apple
+   HIG và WCAG 2.5.5). Nút chỉ chứa icon hiện có chỗ nhỏ tới 20×20 — ngón tay
+   không bấm trúng.
+   `pointer: coarse` = ngón tay; chuột vẫn giữ nguyên kích thước gọn như cũ. */
+@media (pointer: coarse) {
+  button:has(> svg:only-child),
+  button:has(> span:only-child > svg:only-child),
+  a:has(> svg:only-child) {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* Bỏ ô sáng xanh khi chạm — trông cũ và không ăn nhập với thiết kế. */
+button,
+a,
+[role='button'] {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Thanh module o day man dien thoai che mat phan cuoi noi dung, nen trang
+   phai chua san cho. Chi tren man hep - tu tablet tro len nut quay ve
+   header nen khong con thanh day nao. */
+@media (max-width: 767px) {
+  main[data-bottom-launcher] {
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+  }
+}
+
+/* Chừa chỗ cho thanh home của iPhone và tai thỏ. */
+.safe-bottom {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+.safe-top {
+  padding-top: max(0px, env(safe-area-inset-top));
+}
+
+/* Bảng cuộn ngang trên điện thoại rất khó dùng: người dùng không biết còn cột
+   bị khuất. Lớp này biến bảng thành danh sách thẻ dọc dưới 768px — mỗi ô lấy
+   nhãn cột từ thuộc tính data-label. */
+@media (max-width: 767px) {
+  .table-cards thead {
+    display: none;
+  }
+  .table-cards,
+  .table-cards tbody,
+  .table-cards tr,
+  .table-cards td {
+    display: block;
+    width: 100%;
+  }
+  .table-cards tr {
+    border: 1px solid var(--color-slate-200, #e2e8f0);
+    border-radius: 1rem;
+    padding: 0.25rem 0;
+    margin-bottom: 0.75rem;
+    background: #fff;
+  }
+  .dark .table-cards tr {
+    border-color: #334155;
+    background: #1e293b;
+  }
+  .table-cards td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.625rem 1rem;
+  }
+  .table-cards td::before {
+    content: attr(data-label);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #94a3b8;
+    flex-shrink: 0;
+  }
+  /* Ô đầu (thông tin chính) và ô thao tác không cần nhãn. */
+  .table-cards td[data-label='']::before {
+    display: none;
+  }
+  .table-cards td[data-label=''] {
+    justify-content: flex-start;
+  }
+}
+
+/* ===========================================================================
+   Tôn trọng prefers-reduced-motion
+   ---------------------------------------------------------------------------
+   App có 8 hiệu ứng chạy vô hạn (blob trôi, gradient dịch, hạt bay, vệt sáng,
+   vòng nhịp, shimmer skeleton). Với người mắc rối loạn tiền đình, chuyển động
+   liên tục gây chóng mặt và buồn nôn thật sự — đây là yêu cầu bắt buộc của
+   WCAG 2.3.3, không phải tùy chọn thẩm mỹ.
+
+   Người dùng bật "Giảm chuyển động" trong cài đặt hệ điều hành sẽ thấy giao
+   diện tĩnh hoàn toàn, nhưng vẫn đầy đủ chức năng.
+   =========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Các hiệu ứng thuần trang trí thì ẩn hẳn thay vì để chúng đứng yên lệch chỗ. */
+  .particle,
+  .animate-blob {
+    display: none !important;
+  }
+
+  .btn-shine::after {
+    display: none !important;
+  }
+
+  .card-lift:hover {
+    transform: none;
+  }
+
+  /* Skeleton giữ nền tĩnh, bỏ vệt chạy. */
+  .skeleton {
+    animation: none !important;
+    background: #eef2f7;
+  }
+}
+
+/* ============================================================================
+   IN ẤN — Ctrl/⌘+P trên Bảng công, Bảng lương, Báo cáo ra giấy sạch sẽ:
+   bỏ khung điều hướng và mọi nút bấm, bảng chiếm trọn trang nền trắng.
+   ============================================================================ */
+@media print {
+  aside,
+  header,
+  nav,
+  button,
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+  }
+
+  main {
+    padding: 0 !important;
+    max-width: none !important;
+  }
+
+  /* Bỏ cuộn ngang + cột dính để bảng in đủ chiều rộng giấy. */
+  .overflow-x-auto {
+    overflow: visible !important;
+  }
+  .sticky {
+    position: static !important;
+  }
+
+  table {
+    font-size: 11px;
+  }
+}
+
+/* ============================================================================
+   NỀN CÓ CHIỀU SÂU — hai vệt sáng radial (chàm góc phải trên, ngọc lục bảo
+   góc trái) thay cho slate-50 phẳng. Cường độ 6-7% đủ cảm nhận được chiều sâu
+   mà không tranh chấp với nội dung.
+   ============================================================================ */
+.bg-ambient {
+  background-color: #f8fafc;
+  background-image:
+    radial-gradient(1100px 520px at 88% -12%, rgb(59 130 246 / 0.07), transparent 62%),
+    radial-gradient(900px 460px at -8% 18%, rgb(16 185 129 / 0.06), transparent 58%);
+  background-attachment: fixed;
+}
+
+.dark .bg-ambient {
+  background-color: #0b1120;
+  background-image:
+    radial-gradient(1100px 520px at 88% -12%, rgb(59 130 246 / 0.1), transparent 62%),
+    radial-gradient(900px 460px at -8% 18%, rgb(16 185 129 / 0.08), transparent 58%);
+}
+
+/* Dashboard điều hành: một bề mặt sáng, có chiều sâu nhưng vẫn đủ yên để
+   đọc số liệu lâu. Orb chỉ là lớp trang trí và không nhận tương tác. */
+.dashboard-hero {
+  background:
+    linear-gradient(118deg, rgb(255 255 255 / 0.98) 0%, rgb(248 250 252 / 0.96) 48%, rgb(239 246 255 / 0.92) 100%);
+  box-shadow:
+    0 1px 2px rgb(15 23 42 / 0.03),
+    0 18px 44px -32px rgb(37 99 235 / 0.28);
+}
+
+.dashboard-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle at 1px 1px, rgb(100 116 139 / 0.13) 1px, transparent 0);
+  background-size: 22px 22px;
+  mask-image: linear-gradient(90deg, transparent 42%, black 100%);
+  opacity: 0.42;
+}
+
+.dashboard-hero-orb {
+  position: absolute;
+  right: -5rem;
+  top: -7rem;
+  width: 20rem;
+  height: 20rem;
+  border-radius: 9999px;
+  pointer-events: none;
+  background: radial-gradient(circle, rgb(59 130 246 / 0.18) 0%, rgb(99 102 241 / 0.08) 43%, transparent 70%);
+  filter: blur(2px);
+}
+
+@media (max-width: 639px) {
+  .dashboard-hero::before {
+    opacity: 0.24;
+    mask-image: linear-gradient(180deg, transparent 25%, black 100%);
+  }
+
+  .dashboard-hero-orb {
+    right: -8rem;
+    top: -9rem;
+  }
+}
+
+::selection {
+  background: rgb(59 130 246 / 0.22);
+}
