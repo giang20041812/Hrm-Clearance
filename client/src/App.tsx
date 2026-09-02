@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Suspense, useEffect, type ReactNode } from 'react';
+import { clearChunkReloadMarks, lazyRoute } from '@/lib/lazyRoute';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { ConfirmProvider } from '@/contexts/ConfirmContext';
 import { ViewModeProvider } from '@/contexts/ViewModeContext';
