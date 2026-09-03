@@ -32,6 +32,8 @@ export interface AdminNavItem {
  * nhân sự → vận hành công việc & thời gian → phát triển → hệ thống.
  */
 export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
+  { to: '/admin/training', label: 'Đào tạo', description: 'Khóa học, phân công và tiến độ học tập', icon: BookOpen, permission: 'training', group: 'Đào tạo', keywords: 'dao tao khoa hoc hoc tap' },
+
   { to: '/admin/audit', label: 'Nhật ký hệ thống', description: 'Truy vết thay đổi dữ liệu và thao tác quản trị', icon: ClipboardCheck, permission: 'settings', group: 'Hệ thống', keywords: 'audit log lich su truy vet', functionCode: 'admin.audit' },
 ];
 
@@ -49,6 +51,7 @@ export interface StaffNavItem {
  * Khi bổ sung chức năng mới, hai lối vào sẽ luôn xuất hiện đồng thời.
  */
 export const STAFF_NAV_ITEMS: StaffNavItem[] = [
+  { to: '/staff/training', label: 'Đào tạo của tôi', description: 'Khóa học được giao và tiến độ hoàn thành', icon: BookOpen, group: 'Đào tạo', keywords: 'dao tao khoa hoc hoc tap' },
 ];
 
 /**
