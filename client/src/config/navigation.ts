@@ -32,6 +32,7 @@ export interface AdminNavItem {
  * nhân sự → vận hành công việc & thời gian → phát triển → hệ thống.
  */
 export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
+  { to: '/admin/audit', label: 'Nhật ký hệ thống', description: 'Truy vết thay đổi dữ liệu và thao tác quản trị', icon: ClipboardCheck, permission: 'settings', group: 'Hệ thống', keywords: 'audit log lich su truy vet', functionCode: 'admin.audit' },
 ];
 
 export interface StaffNavItem {

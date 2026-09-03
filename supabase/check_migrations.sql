@@ -1,0 +1,428 @@
+-- ============================================================================
+-- Do xem migration nao DA chay tren database nay.
+-- ----------------------------------------------------------------------------
+-- Dan ca file vao Supabase -> SQL Editor -> Run. Chi DOC, khong sua gi.
+--
+-- Khong tra bang `supabase_migrations.schema_migrations` vi bang do chi ghi
+-- nhan nhung lan chay qua `supabase db push`. SQL dan tay vao SQL Editor van
+-- doi database that nhung khong de lai dau vet o do, nen tra bang ay se bao
+-- "chua chay" cho thu da chay roi.
+--
+-- Thay vao do do truc tiep object ma moi migration tao ra. Co object = da chay.
+--
+-- Ca file la MOT cau lenh duy nhat. Supabase SQL Editor chi hien ket qua cua
+-- cau lenh CUOI CUNG, nen tach lam hai cau se nuot mat bang dau - phan viec
+-- lam tay o cuoi duoc noi thang vao cung mot bang bang UNION ALL.
+--
+-- LUU Y khi doc ket qua: moi dong do MOT object dac trung. Migration nao chay
+-- do dang (dut giua chung) van co the bao "DA CHAY" neu object duoc do nam o
+-- dau file. Gap truong hop nghi ngo thi cu chay lai - moi migration trong thu
+-- muc nay deu viet de chay lai duoc nhieu lan.
+-- ============================================================================
+
+with probe as (
+  select * from (values
+
+    -- --- Luong van hanh loi (thang 9, dot dau) -----------------------------
+    -- Hai file nay truoc day khong duoc do, nen production co the dut giua
+    -- file ma bang kiem tra van im lang. Do TAT CA object quan trong o cuoi
+    -- moi file de phat hien dung truong hop da gap tren production.
+    ('20260909090000_core_flow_integration',
+     to_regclass('public.timesheet_periods') is not null
+       and to_regclass('public.project_role_definitions') is not null,
+     'Ky bang cong va dinh nghia vai tro/quyen trong du an'),
+
+    ('20260909110000_attendance_sessions_leave_ledger',
+     to_regclass('public.attendance_sessions') is not null
+       and to_regclass('public.leave_ledger') is not null
+       and to_regclass('public.leave_cancellation_requests') is not null,
+     'Phien vao/ra, so phep va yeu cau huy don da duyet'),
+
+    -- --- Nen tang luong (thang 9, dot dau) ---------------------------------
+    ('20260921110000_merge_hours_setting',
+     not exists (select 1 from information_schema.columns
+                 where table_schema = 'public' and table_name = 'app_settings'
+                   and column_name = 'payroll_hours_per_day'),
+     'Bo thiet lap gio/ngay trung lap o app_settings'),
+
+    ('20260921120000_unify_insurance_rates',
+     not exists (select 1 from public.payroll_components where code = 'ER_SOCIAL'),
+     'Gop ty le bao hiem doanh nghiep ve tham so, xoa khoan ER_*'),
+
+    ('20260921130000_payroll_settings',
+     to_regclass('public.payroll_settings') is not null,
+     'Tach tham so luong sang bang rieng, RLS chi Admin/CEO'),
+
+    ('20260926100000_attendance_devices',
+     to_regclass('public.attendance_devices') is not null,
+     'May cham cong: thiet bi, token, su kien'),
+
+    ('20260927100000_kpi_position_templates',
+     to_regclass('public.kpi_position_templates') is not null,
+     'Bo KPI theo vi tri va tieu chi'),
+
+    ('20260927110000_kpi_payroll_bridge',
+     exists (select 1 from public.payroll_components where code = 'LUONG_KPI'),
+     'Khoan LUONG_KPI va cau noi KPI -> bang luong'),
+
+    ('20260928100000_union_fee_component',
+     exists (select 1 from public.payroll_components where code = 'QUY_CONG_DOAN'),
+     'Khoan Quy cong doan'),
+
+    ('20260928110000_work_schedules',
+     to_regclass('public.work_schedules') is not null
+       or exists (select 1 from information_schema.columns
+                  where table_schema = 'public' and table_name = 'organization_units'
+                    and column_name = 'schedule_id'),
+     'Ca lam viec, do di muon ve som'),
+
+    ('20260928120000_overtime_tax_exemption',
+     exists (select 1 from information_schema.columns
+             where table_schema = 'public' and table_name = 'payroll_components'
+               and column_name = 'ot_multiplier'),
+     'Mien thue phan vuot 100% cua tien tang ca'),
+
+    ('20260928130000_leave_two_stage_approval',
+     to_regclass('public.leave_cancellation_requests') is not null,
+     'Duyet don nghi hai cap theo so ngay'),
+
+    ('20260928140000_payroll_adjustments',
+     to_regclass('public.payroll_adjustments') is not null,
+     'Truy linh / truy thu ky truoc'),
+
+    ('20260928150000_unit_pay_items',
+     to_regclass('public.unit_pay_items') is not null,
+     'Gan khoan luong cho ca don vi; xoa bang salary_profiles cu'),
+
+    ('20260928160000_payroll_caps_and_minimums',
+     exists (select 1 from information_schema.columns
+             where table_schema = 'public' and table_name = 'payroll_components'
+               and column_name = 'max_amount'),
+     'Tran so tien cua khoan luong, muc luong toi thieu vung'),
+
+    -- --- KPI (29/09) -------------------------------------------------------
+    ('20260929100000_kpi_auto_scoring',
+     exists (select 1 from information_schema.columns
+             where table_schema = 'public' and table_name = 'kpi_template_criteria'
+               and column_name = 'measure_unit'),
+     'Tu cham diem tu so lieu thuc te theo thang muc'),
+
+    ('20260929110000_kpi_flexible_methods',
+     exists (select 1 from information_schema.columns
+             where table_schema = 'public' and table_name = 'kpi_position_templates'
+               and column_name = 'score_method'),
+     'Cach tinh ket qua, tran va san ket qua'),
+
+    ('20260929120000_kpi_blocks',
+     to_regclass('public.kpi_blocks') is not null,
+     'Khoi nghiep vu cua bo KPI thanh danh muc'),
+
+    ('20260929130000_daily_assignments',
+     to_regclass('public.daily_assignments') is not null,
+     'Giao viec hang ngay'),
+
+    ('20260929133000_employee_profile_records',
+     exists (select 1 from information_schema.columns
+             where table_schema = 'public' and table_name = 'profiles'
+               and column_name = 'permanent_address'),
+     'Ho so nhan su: que quan, dia chi, hoc van'),
+
+    ('20260929140000_lock_timesheet_period',
+     exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+             where n.nspname = 'public' and p.proname = 'timesheet_period_locked'),
+     'Khoa ky cong: chan sua cham cong va don nghi cua ky da khoa'),
+
+    -- --- Ra soat theo tai lieu BRD (30/09) ---------------------------------
+    ('20260930100000_teamlead_department_scope',
+     exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+             where n.nspname = 'public' and p.proname = 'manages_employee'),
+     'Truong nhom chi xem duoc cham cong trong pham vi quan ly (RC1.2)'),
+
+    ('20260930110000_attendance_requests',
+     to_regclass('public.attendance_requests') is not null,
+     'Don giai trinh di muon / quen cham cong'),
+
+    ('20260930120000_process_library',
+     to_regclass('public.process_documents') is not null,
+     'Thu vien quy trinh, bieu mau (can tao bucket process-documents)'),
+
+    ('20260930130000_public_apply_form',
+     exists (select 1 from information_schema.columns
+             where table_schema = 'public' and table_name = 'recruitment_job_postings'
+               and column_name = 'public_code'),
+     'Form ung tuyen cong khai (RC2.5)'),
+
+    -- --- KPI chi ra thong so, luong tinh tien (30/09) ----------------------
+    ('20260930140000_kpi_metrics_only',
+     exists (select 1 from public.payroll_components
+             where code = 'LUONG_KPI' and formula like '%MUC_RIENG%'),
+     'KPI chi day KPI_PCT; muc luong KPI khai o Co che luong'),
+
+    ('20260930150000_drop_okr_goals',
+     to_regclass('public.performance_goals') is null,
+     'Bo OKR'),
+
+    ('20260930160000_employee_kpi_scheme',
+     to_regclass('public.employee_kpi_schemes') is not null,
+     'Gan bo KPI rieng cho tung nguoi'),
+
+    ('20260930170000_kpi_effective_weight',
+     exists (select 1 from information_schema.columns
+             where table_schema = 'public' and table_name = 'performance_review_scores'
+               and column_name = 'not_applicable'),
+     'Tieu chi khong phat sinh nhuong ty trong cho phan con lai'),
+
+    ('20260930180000_kpi_period_month',
+     exists (select 1 from information_schema.columns
+             where table_schema = 'public' and table_name = 'performance_reviews'
+               and column_name = 'period_month'),
+     'Bo chu ky danh gia, chuyen sang chon thang ngay tren man cham'),
+
+    ('20260930190000_kpi_score_methods',
+     to_regclass('public.kpi_score_methods') is not null
+       and to_regclass('public.unit_kpi_schemes') is not null,
+     'Danh muc cach tinh ket qua KPI + gan bo KPI cho ca don vi'),
+
+    ('20260930200000_profiles_role_teamlead',
+     exists (select 1 from pg_constraint con
+             join pg_class rel on rel.oid = con.conrelid
+             join pg_namespace nsp on nsp.oid = rel.relnamespace
+             where nsp.nspname = 'public' and rel.relname = 'profiles'
+               and con.contype = 'c'
+               and pg_get_constraintdef(con.oid) like '%teamlead%'),
+     'Mo CHECK profiles.role cho vai tro Truong nhom'),
+
+    ('20260930210000_huyphong_pay_components',
+     exists (select 1 from public.payroll_components where code = 'LUONG_VAN_CHUYEN'),
+     'Danh muc khoan luong theo cong thuc Huy Phong'),
+
+    ('20260930220000_pay_component_groups',
+     exists (select 1 from information_schema.columns
+             where table_schema = 'public' and table_name = 'payroll_components'
+               and column_name = 'group_name'),
+     'Nhom khoan luong; don khoan cong doan trung; tra lai dau tieng Viet'),
+
+    -- Khong do bang to_regclass duoc: migration nay chi THAY than ham
+    -- ingest_attendance_device_events, khong tao object moi. Do bang chinh
+    -- doan ma da sua trong than ham.
+    ('20260927130000_attendance_device_autoapprove',
+     exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+             where n.nspname = 'public'
+               and p.proname in ('ingest_attendance_device_events', 'ingest_attendance_device_events_validated')
+               and p.prosrc like '%approved_by_lead = true%'),
+     'Cham cong tu may tu duyet - THIEU THI LUONG RA 0 NGAY CONG'),
+
+    ('20260930230000_attendance_device_arrival_only',
+     exists (select 1 from information_schema.columns
+             where table_schema = 'public' and table_name = 'attendance_devices'
+               and column_name = 'records_checkout'),
+     'May chi ghi gio vao - THIEU THI DONG BO VANG EXCEPTION'),
+
+    ('20261007130000_attendance_sync_on_demand',
+     exists (select 1 from information_schema.columns
+             where table_schema = 'public' and table_name = 'attendance_devices'
+               and column_name = 'sync_requested_at'),
+     'Nut "Dong bo ngay" tren HRM va moc bao danh cua bridge'),
+
+    -- Lai la migration chi THAY than ham. Ban da sua doi ten bien thanh v_*
+    -- de het nhap nhang voi ten cot, nen do bang chinh ten bien do.
+    ('20261007140000_fix_ingest_variable_conflict',
+     exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+             where n.nspname = 'public' and p.proname = 'ingest_attendance_device_events'
+               and p.prosrc like '%v_unmapped%'),
+     'Sua ambiguous + missing FROM-clause - THIEU THI MOI LAN DONG BO DEU VANG LOI'),
+
+    -- --- Ra soat trang nhan vien (01/10) ----------------------------------
+    ('20261001100000_unit_multiple_managers',
+     to_regclass('public.organization_unit_managers') is not null,
+     'Mot don vi nhieu nguoi phu trach; manages_employee xet ca nguoi dong phu trach'),
+
+    ('20261001110000_attendance_one_open_per_day',
+     exists (select 1 from pg_indexes
+             where schemaname = 'public'
+               and indexname = 'attendance_one_open_per_user_day'),
+     'Moi nguoi moi ngay chi mot ban ghi cham cong dang mo'),
+
+    ('20261001120000_kpi_self_scoring',
+     exists (select 1 from information_schema.columns
+             where table_schema = 'public' and table_name = 'performance_reviews'
+               and column_name = 'self_submitted_at'),
+     'Tu cham KPI hai cap; chan nhan vien sua diem quan ly cham'),
+
+    ('20261001130000_criteria_score_method',
+     exists (select 1 from information_schema.columns
+             where table_schema = 'public' and table_name = 'kpi_template_criteria'
+               and column_name = 'score_method'),
+     'Cach tinh diem theo TUNG TIEU CHI thay vi ca bo KPI'),
+
+    ('20261001140000_kpi_template_unit',
+     exists (select 1 from information_schema.columns
+             where table_schema = 'public' and table_name = 'kpi_position_templates'
+               and column_name = 'unit_id'),
+     'Bo KPI gan thang vao phong ban; kpi_scheme_for xet ca duong nay'),
+
+    ('20261002100000_profile_function_permissions',
+     to_regclass('public.profile_function_permissions') is not null,
+     'Cap quyen chuc nang rieng cho tung tai khoan, khong phai mo ca vi tri'),
+
+    ('20261002110000_kpi_evidence',
+     to_regclass('public.kpi_evidence') is not null,
+     'Minh chung KPI: admin dinh vao tieu chi, nhan vien dinh vao diem tu cham'),
+
+    ('20261002120000_kpi_return_with_reason',
+     exists (select 1 from information_schema.columns
+             where table_schema = 'public' and table_name = 'performance_reviews'
+               and column_name = 'return_reason'),
+     'Tra phieu KPI ve cho nhan vien kem ly do, dong vong lap bo sung'),
+
+    ('20261002130000_kpi_bounds_and_self_measure',
+     exists (select 1 from information_schema.columns
+             where table_schema = 'public' and table_name = 'performance_review_scores'
+               and column_name = 'self_actual_value'),
+     'Bien tren/duoi cua muc tieu, va o nhap ket qua that cua nhan vien'),
+
+    ('20261002150000_kpi_criteria_section',
+     exists (select 1 from information_schema.columns
+             where table_schema = 'public' and table_name = 'kpi_template_criteria'
+               and column_name = 'section'),
+     'Chia tieu chi thanh phan dinh luong / dinh tinh, co tieu tong rieng'),
+
+    ('20261004100000_pay_component_is_base',
+     exists (select 1 from information_schema.columns
+             where table_schema = 'public' and table_name = 'payroll_components'
+               and column_name = 'is_base'),
+     'Khai luong goc bang mot khoan trong danh muc thay cho pay_basis'),
+
+    ('20261006100000_daily_assignments_security',
+     to_regprocedure('public.guard_daily_assignment_changes()') is not null
+       and exists (select 1 from pg_policies
+                   where schemaname = 'public'
+                     and tablename = 'daily_assignments'
+                     and policyname = 'daily_assignments_update'),
+     'Gioi han giao viec theo pham vi quan ly va khoa chuyen trang thai'),
+
+    ('20261003100000_profiles_phone',
+     exists (select 1 from information_schema.columns
+             where table_schema = 'public' and table_name = 'profiles'
+               and column_name = 'phone'),
+     'So dien thoai trong ho so ca nhan; cho phep nguoi dung tu cap nhat'),
+
+    ('20261002140000_phone_push_notifications',
+     to_regclass('public.push_subscriptions') is not null
+       and exists (select 1 from information_schema.columns
+                   where table_schema = 'public' and table_name = 'notifications'
+                     and column_name = 'push_sent_at'),
+     'Dang ky thiet bi va gui Web Push dung nguoi nhan')
+
+    ,('20261002143000_lifecycle_checklist_owner_access',
+     to_regprocedure('public.owns_lifecycle_checklist(uuid)') is not null
+       and exists (select 1 from pg_policies
+                   where schemaname = 'public'
+                     and tablename = 'employee_lifecycle_processes'
+                     and policyname = 'lifecycle_read'
+                     and qual like '%owns_lifecycle_checklist%'),
+     'Nguoi phu trach checklist mo duoc quy trinh tu thong bao'),
+
+    ('20261007113000_security_payroll_attendance_hardening',
+     to_regprocedure('public.is_admin()') is not null
+       and to_regprocedure('public.persist_payroll_payslips(uuid,jsonb)') is not null
+       and to_regprocedure('public.set_annual_leave_quota(uuid,integer)') is not null
+       and to_regprocedure('public.get_profile_approver_ids(text)') is not null
+       and to_regclass('public.profiles_directory') is not null
+       and to_regclass('public.profiles_workforce_accounts') is not null
+       and to_regclass('public.profiles_leave_quota') is not null
+       and to_regclass('public.attendance_device_auth_failures') is not null
+       and exists (select 1 from pg_policies
+                   where schemaname = 'public' and tablename = 'profiles'
+                     and policyname = 'profiles_read_direct')
+       and exists (select 1 from pg_class c
+                   join pg_namespace n on n.oid = c.relnamespace
+                   where n.nspname = 'public' and c.relname = 'profiles'
+                     and c.relrowsecurity)
+       and not exists (select 1 from pg_policies
+                       where schemaname = 'public' and tablename = 'profiles'
+                         and cmd = 'SELECT' and qual in ('true', '(true)'))
+       and not exists (select 1 from public.attendance_device_tokens
+                       where revoked_at is null and expires_at is null)
+       and not has_table_privilege('authenticated', 'public.payslips', 'INSERT')
+       and not has_table_privilege('authenticated', 'public.payslip_lines', 'INSERT'),
+     'Gioi han doc profile, ghi payslip nguyen tu, token cham cong het han')
+
+    ,('20261010110000_m04_project_workflows',
+     to_regclass('public.project_task_requests') is not null
+       and to_regprocedure('public.request_project_task_action(uuid,text,date,text)') is not null
+       and to_regprocedure('public.review_project_task_request(uuid,text,text)') is not null
+       and to_regclass('public.worklog_submissions') is not null
+       and to_regprocedure('public.submit_project_worklog_week(date,text)') is not null
+       and to_regprocedure('public.review_project_worklog_submission(uuid,text,text)') is not null
+       and to_regclass('public.worklog_submission_history') is not null
+       and to_regclass('public.daily_assignment_history') is not null
+       and exists (select 1 from pg_trigger
+                   where tgrelid = to_regclass('public.tasks')
+                     and tgname = 'project_task_workflow_guard' and not tgisinternal)
+       and exists (select 1 from pg_trigger
+                   where tgrelid = to_regclass('public.task_worklogs')
+                     and tgname = 'worklog_submission_guard' and not tgisinternal)
+       and exists (select 1 from pg_trigger
+                   where tgrelid = to_regclass('public.daily_assignments')
+                     and tgname = 'daily_assignment_history_record' and not tgisinternal),
+     'Gia han/nghiem thu task, duyet worklog tuan, lich su giao viec')
+
+  ) as t(migration, applied, mo_ta)
+)
+select * from (
+
+select
+  case when applied then 'DA CHAY' else '>>> CHUA CHAY' end as trang_thai,
+  migration,
+  mo_ta
+from probe
+
+union all
+
+-- Viec ngoai migration: phai lam tay tren dashboard, khong file nao chay ho.
+select
+  case
+    when exists (select 1 from storage.buckets where id = 'process-documents')
+      then 'DA CHAY'
+    else '>>> CHUA CHAY'
+  end,
+  'zz1. Bucket process-documents',
+  'Storage -> New bucket -> ten process-documents (thu vien quy trinh)'
+
+union all
+
+select
+  case
+    when exists (select 1 from storage.buckets where id = 'kpi-evidence')
+      then 'DA CHAY'
+    else '>>> CHUA CHAY'
+  end,
+  'zz3. Bucket kpi-evidence',
+  'Storage -> New bucket -> ten kpi-evidence, Private (minh chung KPI)'
+
+union all
+
+select
+  case
+    when (select count(*) from public.payroll_components
+          where code in ('QUY_CONG_DOAN', 'PHI_CONG_DOAN', 'UNION_FEE') and is_active) > 1
+      then '>>> CHUA CHAY'
+    else 'DA CHAY'
+  end,
+  'zz2. Khoan cong doan trung',
+  'Dang bat ' || (select count(*) from public.payroll_components
+                  where code in ('QUY_CONG_DOAN', 'PHI_CONG_DOAN', 'UNION_FEE') and is_active)
+    || ' khoan cong doan. Nen chi bat mot - gan hai khoan cho cung mot nguoi la tru hai lan.'
+
+-- Chua chay LEN DAU: doc tu tren xuong la ra viec phai lam.
+--
+-- Ban cu `order by 1 desc` sap theo chuoi trang thai, ma '>>> CHUA CHAY' bat
+-- dau bang '>' (62) con 'DA CHAY' bat dau bang 'D' (68) - `desc` day DA CHAY
+-- len tren, dung nguoc y dinh, va viec phai lam nam tan cuoi phai cuon moi
+-- thay.
+--
+-- Boc ca UNION vao mot subquery de sap bang BIEU THUC: order by cua UNION chi
+-- nhan ten cot hoac so thu tu, khong nhan bieu thuc.
+) as ket_qua
+order by (case when trang_thai = 'DA CHAY' then 1 else 0 end), migration;
