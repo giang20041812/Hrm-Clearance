@@ -1,18 +1,30 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Suspense, useEffect, type ReactNode } from 'react';
 import { clearChunkReloadMarks, lazyRoute } from '@/lib/lazyRoute';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { ConfirmProvider } from '@/contexts/ConfirmContext';
 import { ViewModeProvider } from '@/contexts/ViewModeContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { IsolatedBoundary } from '@/components/PageErrorBoundary';
+import { CommandPalette } from '@/components/CommandPalette';
 import { InstallPrompt } from '@/components/InstallPrompt';
+import { AdminLayout } from '@/components/layouts/AdminLayout';
+import { StaffLayout } from '@/components/layouts/StaffLayout';
 import { ADMIN_NAV_ITEMS } from '@/config/navigation';
 
 // Mỗi module được tải khi người dùng thực sự mở tới. Việc này giữ lần tải đầu
 // nhẹ dù hệ thống tiếp tục mở rộng thêm nghiệp vụ và vai trò.
+const LoginPage = lazyRoute('LoginPage', () => import('@/pages/auth/LoginPage').then((m) => ({ default: m.LoginPage })));
+const ForgotPasswordPage = lazyRoute('ForgotPasswordPage', () => import('@/pages/auth/ForgotPasswordFlow').then((m) => ({ default: m.ForgotPasswordPage })));
+const ResetPasswordPage = lazyRoute('ResetPasswordPage', () => import('@/pages/auth/ResetPasswordPage').then((m) => ({ default: m.ResetPasswordPage })));
+const ChangePasswordPage = lazyRoute('ChangePasswordPage', () => import('@/pages/auth/ChangePasswordPage').then((m) => ({ default: m.ChangePasswordPage })));
+const SetupPage = lazyRoute('SetupPage', () => import('@/pages/auth/SetupPage').then((m) => ({ default: m.SetupPage })));
+const AdminUsers = lazyRoute('AdminUsers', () => import('@/pages/admin/AdminUsers').then((m) => ({ default: m.AdminUsers })));
 const AdminAudit = lazyRoute('AdminAudit', () => import('@/pages/admin/AdminAudit').then((m) => ({ default: m.AdminAudit })));
 const AdminTraining = lazyRoute('AdminTraining', () => import('@/pages/admin/AdminTraining').then((m) => ({ default: m.AdminTraining })));
+const ProfilePage = lazyRoute('ProfilePage', () => import('@/pages/ProfilePage').then((m) => ({ default: m.ProfilePage })));
 const StaffTraining = lazyRoute('StaffTraining', () => import('@/pages/staff/StaffTraining').then((m) => ({ default: m.StaffTraining })));
 
 function AppLoading() {
@@ -137,13 +149,21 @@ function AppRoutes() {
     <Routes>
 
       <Route path="/" element={<AuthRedirect />} />
+      <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
+      <Route path="/forgot-password" element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/setup" element={<SetupPage />} />
+      <Route path="/change-password" element={<ProtectedRoute allowPasswordChange><ChangePasswordPage /></ProtectedRoute>} />
 
       {/* Admin routes — mỗi trang gắn với một quyền lẻ */}
       <Route path="/admin" element={<AdminHomeRedirect />} />
+      <Route path="/admin/users" element={admin('users', <AdminUsers />)} />
       <Route path="/admin/training" element={admin('training', <AdminTraining />)} />
       {/* Nhật ký hệ thống — quyền module + chức năng nâng cao; RLS là hàng rào cuối. */}
       <Route path="/admin/audit" element={admin('settings', <AdminAudit />, { functionCode: 'admin.audit' })} />
 
+      {/* Hồ sơ cá nhân — ai đăng nhập cũng có, layout theo vai trò */}
+      <Route path="/profile" element={<ProtectedRoute><OwnLayout><ProfilePage /></OwnLayout></ProtectedRoute>} />
 
       <Route path="/staff/training" element={staff(<StaffTraining />)} />
       <Route path="/staff/growth" element={<Navigate to="/staff/dashboard" replace />} />
@@ -165,13 +185,17 @@ export default function App() {
       <ThemeProvider>
         <ToastProvider>
           <ConfirmProvider>
+            <AuthProvider>
                 <ViewModeProvider>
                   <Suspense fallback={<AppLoading />}>
                     <AppRoutes />
                   </Suspense>
+                  {/* Ctrl/⌘+K — tự ẩn khi chưa đăng nhập. */}
+                  <IsolatedBoundary><CommandPalette /></IsolatedBoundary>
                   {/* Dải mời cài app — chỉ hiện khi trình duyệt thực sự cài được. */}
                   <IsolatedBoundary><InstallPrompt /></IsolatedBoundary>
                 </ViewModeProvider>
+            </AuthProvider>
           </ConfirmProvider>
         </ToastProvider>
       </ThemeProvider>
