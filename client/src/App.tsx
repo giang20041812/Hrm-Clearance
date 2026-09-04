@@ -14,6 +14,7 @@ import { ADMIN_NAV_ITEMS } from '@/config/navigation';
 const AdminLeave = lazyRoute('AdminLeave', () => import('@/pages/admin/AdminLeave').then((m) => ({ default: m.AdminLeave })));
 const AdminAudit = lazyRoute('AdminAudit', () => import('@/pages/admin/AdminAudit').then((m) => ({ default: m.AdminAudit })));
 const AdminTraining = lazyRoute('AdminTraining', () => import('@/pages/admin/AdminTraining').then((m) => ({ default: m.AdminTraining })));
+const StaffLeave = lazyRoute('StaffLeave', () => import('@/pages/staff/StaffLeave').then((m) => ({ default: m.StaffLeave })));
 const StaffTraining = lazyRoute('StaffTraining', () => import('@/pages/staff/StaffTraining').then((m) => ({ default: m.StaffTraining })));
 
 function AppLoading() {
@@ -147,6 +148,7 @@ function AppRoutes() {
       <Route path="/admin/audit" element={admin('settings', <AdminAudit />, { functionCode: 'admin.audit' })} />
 
 
+      <Route path="/staff/leave" element={staff(<StaffLeave />)} />
       <Route path="/staff/training" element={staff(<StaffTraining />)} />
       <Route path="/staff/growth" element={<Navigate to="/staff/dashboard" replace />} />
 

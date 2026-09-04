@@ -53,6 +53,8 @@ export interface StaffNavItem {
  * Khi bổ sung chức năng mới, hai lối vào sẽ luôn xuất hiện đồng thời.
  */
 export const STAFF_NAV_ITEMS: StaffNavItem[] = [
+  { to: '/staff/leave', label: 'Đơn từ của tôi', description: 'Nghỉ phép, đi muộn, về sớm, OT và làm thêm ca đêm', icon: ClipboardList, group: 'Công', keywords: 'don tu xin nghi quy phep di muon ve som lam them tang ca ot ngay thuong chu nhat ngay le ca dem' },
+
   { to: '/staff/training', label: 'Đào tạo của tôi', description: 'Khóa học được giao và tiến độ hoàn thành', icon: BookOpen, group: 'Đào tạo', keywords: 'dao tao khoa hoc hoc tap' },
 ];
 
