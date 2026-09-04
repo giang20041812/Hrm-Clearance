@@ -9,6 +9,7 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { IsolatedBoundary } from '@/components/PageErrorBoundary';
 import { InstallPrompt } from '@/components/InstallPrompt';
+import { AdminLayout } from '@/components/layouts/AdminLayout';
 import { ADMIN_NAV_ITEMS } from '@/config/navigation';
 
 // Mỗi module được tải khi người dùng thực sự mở tới. Việc này giữ lần tải đầu
