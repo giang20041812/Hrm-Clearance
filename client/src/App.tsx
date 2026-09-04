@@ -8,8 +8,10 @@ import { ViewModeProvider } from '@/contexts/ViewModeContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { IsolatedBoundary } from '@/components/PageErrorBoundary';
+import { CommandPalette } from '@/components/CommandPalette';
 import { InstallPrompt } from '@/components/InstallPrompt';
 import { AdminLayout } from '@/components/layouts/AdminLayout';
+import { StaffLayout } from '@/components/layouts/StaffLayout';
 import { ADMIN_NAV_ITEMS } from '@/config/navigation';
 
 // Mỗi module được tải khi người dùng thực sự mở tới. Việc này giữ lần tải đầu
@@ -178,6 +180,8 @@ export default function App() {
                   <Suspense fallback={<AppLoading />}>
                     <AppRoutes />
                   </Suspense>
+                  {/* Ctrl/⌘+K — tự ẩn khi chưa đăng nhập. */}
+                  <IsolatedBoundary><CommandPalette /></IsolatedBoundary>
                   {/* Dải mời cài app — chỉ hiện khi trình duyệt thực sự cài được. */}
                   <IsolatedBoundary><InstallPrompt /></IsolatedBoundary>
                 </ViewModeProvider>
