@@ -11,6 +11,7 @@ import { ADMIN_NAV_ITEMS } from '@/config/navigation';
 
 // Mỗi module được tải khi người dùng thực sự mở tới. Việc này giữ lần tải đầu
 // nhẹ dù hệ thống tiếp tục mở rộng thêm nghiệp vụ và vai trò.
+const AdminLeave = lazyRoute('AdminLeave', () => import('@/pages/admin/AdminLeave').then((m) => ({ default: m.AdminLeave })));
 const AdminAudit = lazyRoute('AdminAudit', () => import('@/pages/admin/AdminAudit').then((m) => ({ default: m.AdminAudit })));
 const AdminTraining = lazyRoute('AdminTraining', () => import('@/pages/admin/AdminTraining').then((m) => ({ default: m.AdminTraining })));
 const StaffTraining = lazyRoute('StaffTraining', () => import('@/pages/staff/StaffTraining').then((m) => ({ default: m.StaffTraining })));
@@ -140,6 +141,7 @@ function AppRoutes() {
 
       {/* Admin routes — mỗi trang gắn với một quyền lẻ */}
       <Route path="/admin" element={<AdminHomeRedirect />} />
+      <Route path="/admin/leave" element={adminAny(['leave', 'attendance', 'users'], <AdminLeave />)} />
       <Route path="/admin/training" element={admin('training', <AdminTraining />)} />
       {/* Nhật ký hệ thống — quyền module + chức năng nâng cao; RLS là hàng rào cuối. */}
       <Route path="/admin/audit" element={admin('settings', <AdminAudit />, { functionCode: 'admin.audit' })} />
