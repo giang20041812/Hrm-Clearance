@@ -32,6 +32,8 @@ export interface AdminNavItem {
  * nhân sự → vận hành công việc & thời gian → phát triển → hệ thống.
  */
 export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
+  { to: '/admin/users', label: 'Hồ sơ nhân sự', description: 'Thông tin cá nhân, tình trạng làm việc và giấy tờ nhân viên', icon: Users, permission: 'users', group: 'Nhân sự', keywords: 'ho so nhan su danh ba nhan vien tai khoan' },
+
   { to: '/admin/audit', label: 'Nhật ký hệ thống', description: 'Truy vết thay đổi dữ liệu và thao tác quản trị', icon: ClipboardCheck, permission: 'settings', group: 'Hệ thống', keywords: 'audit log lich su truy vet', functionCode: 'admin.audit' },
 ];
 

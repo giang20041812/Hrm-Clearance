@@ -21,6 +21,7 @@ const ForgotPasswordPage = lazyRoute('ForgotPasswordPage', () => import('@/pages
 const ResetPasswordPage = lazyRoute('ResetPasswordPage', () => import('@/pages/auth/ResetPasswordPage').then((m) => ({ default: m.ResetPasswordPage })));
 const ChangePasswordPage = lazyRoute('ChangePasswordPage', () => import('@/pages/auth/ChangePasswordPage').then((m) => ({ default: m.ChangePasswordPage })));
 const SetupPage = lazyRoute('SetupPage', () => import('@/pages/auth/SetupPage').then((m) => ({ default: m.SetupPage })));
+const AdminUsers = lazyRoute('AdminUsers', () => import('@/pages/admin/AdminUsers').then((m) => ({ default: m.AdminUsers })));
 const AdminAudit = lazyRoute('AdminAudit', () => import('@/pages/admin/AdminAudit').then((m) => ({ default: m.AdminAudit })));
 const ProfilePage = lazyRoute('ProfilePage', () => import('@/pages/ProfilePage').then((m) => ({ default: m.ProfilePage })));
 
@@ -154,6 +155,7 @@ function AppRoutes() {
 
       {/* Admin routes — mỗi trang gắn với một quyền lẻ */}
       <Route path="/admin" element={<AdminHomeRedirect />} />
+      <Route path="/admin/users" element={admin('users', <AdminUsers />)} />
       {/* Nhật ký hệ thống — quyền module + chức năng nâng cao; RLS là hàng rào cuối. */}
       <Route path="/admin/audit" element={admin('settings', <AdminAudit />, { functionCode: 'admin.audit' })} />
 
