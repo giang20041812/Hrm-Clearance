@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { ConfirmProvider } from '@/contexts/ConfirmContext';
 import { ViewModeProvider } from '@/contexts/ViewModeContext';
+import { SettingsProvider } from '@/contexts/SettingsContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { IsolatedBoundary } from '@/components/PageErrorBoundary';
@@ -23,6 +24,7 @@ const ChangePasswordPage = lazyRoute('ChangePasswordPage', () => import('@/pages
 const SetupPage = lazyRoute('SetupPage', () => import('@/pages/auth/SetupPage').then((m) => ({ default: m.SetupPage })));
 const AdminUsers = lazyRoute('AdminUsers', () => import('@/pages/admin/AdminUsers').then((m) => ({ default: m.AdminUsers })));
 const AdminLeave = lazyRoute('AdminLeave', () => import('@/pages/admin/AdminLeave').then((m) => ({ default: m.AdminLeave })));
+const AdminSettings = lazyRoute('AdminSettings', () => import('@/pages/admin/AdminSettings').then((m) => ({ default: m.AdminSettings })));
 const AdminAudit = lazyRoute('AdminAudit', () => import('@/pages/admin/AdminAudit').then((m) => ({ default: m.AdminAudit })));
 const AdminTraining = lazyRoute('AdminTraining', () => import('@/pages/admin/AdminTraining').then((m) => ({ default: m.AdminTraining })));
 const ProfilePage = lazyRoute('ProfilePage', () => import('@/pages/ProfilePage').then((m) => ({ default: m.ProfilePage })));
@@ -162,6 +164,7 @@ function AppRoutes() {
       <Route path="/admin/users" element={admin('users', <AdminUsers />)} />
       <Route path="/admin/leave" element={adminAny(['leave', 'attendance', 'users'], <AdminLeave />)} />
       <Route path="/admin/training" element={admin('training', <AdminTraining />)} />
+      <Route path="/admin/settings" element={admin('settings', <AdminSettings />)} />
       {/* Nhật ký hệ thống — quyền module + chức năng nâng cao; RLS là hàng rào cuối. */}
       <Route path="/admin/audit" element={admin('settings', <AdminAudit />, { functionCode: 'admin.audit' })} />
 
@@ -190,6 +193,8 @@ export default function App() {
         <ToastProvider>
           <ConfirmProvider>
             <AuthProvider>
+              {/* Trong AuthProvider: RLS đòi đăng nhập mới đọc được app_settings. */}
+              <SettingsProvider>
                 <ViewModeProvider>
                   <Suspense fallback={<AppLoading />}>
                     <AppRoutes />
@@ -199,6 +204,7 @@ export default function App() {
                   {/* Dải mời cài app — chỉ hiện khi trình duyệt thực sự cài được. */}
                   <IsolatedBoundary><InstallPrompt /></IsolatedBoundary>
                 </ViewModeProvider>
+              </SettingsProvider>
             </AuthProvider>
           </ConfirmProvider>
         </ToastProvider>
