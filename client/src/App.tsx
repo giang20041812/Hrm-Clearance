@@ -22,7 +22,9 @@ const ForgotPasswordPage = lazyRoute('ForgotPasswordPage', () => import('@/pages
 const ResetPasswordPage = lazyRoute('ResetPasswordPage', () => import('@/pages/auth/ResetPasswordPage').then((m) => ({ default: m.ResetPasswordPage })));
 const ChangePasswordPage = lazyRoute('ChangePasswordPage', () => import('@/pages/auth/ChangePasswordPage').then((m) => ({ default: m.ChangePasswordPage })));
 const SetupPage = lazyRoute('SetupPage', () => import('@/pages/auth/SetupPage').then((m) => ({ default: m.SetupPage })));
+const AdminOverview = lazyRoute('AdminOverview', () => import('@/pages/admin/AdminOverview').then((m) => ({ default: m.AdminOverview })));
 const AdminUsers = lazyRoute('AdminUsers', () => import('@/pages/admin/AdminUsers').then((m) => ({ default: m.AdminUsers })));
+const AdminReports = lazyRoute('AdminReports', () => import('@/pages/admin/AdminReports').then((m) => ({ default: m.AdminReports })));
 const AdminLeave = lazyRoute('AdminLeave', () => import('@/pages/admin/AdminLeave').then((m) => ({ default: m.AdminLeave })));
 const AdminSettings = lazyRoute('AdminSettings', () => import('@/pages/admin/AdminSettings').then((m) => ({ default: m.AdminSettings })));
 const AdminAudit = lazyRoute('AdminAudit', () => import('@/pages/admin/AdminAudit').then((m) => ({ default: m.AdminAudit })));
@@ -161,7 +163,13 @@ function AppRoutes() {
 
       {/* Admin routes — mỗi trang gắn với một quyền lẻ */}
       <Route path="/admin" element={<AdminHomeRedirect />} />
+      {/* Tổng quan điều hành — quyền reports + chức năng nâng cao tương ứng. */}
+      <Route path="/admin/overview" element={admin('reports', <AdminOverview />, { functionCode: 'admin.overview' })} />
+      {/* Gộp vào Tổng quan điều hành. Giữ chuyển hướng để link cũ và
+          bookmark của người dùng không chết. */}
+      <Route path="/admin/dashboard" element={<Navigate to="/admin" replace />} />
       <Route path="/admin/users" element={admin('users', <AdminUsers />)} />
+      <Route path="/admin/reports" element={admin('reports', <AdminReports />)} />
       <Route path="/admin/leave" element={adminAny(['leave', 'attendance', 'users'], <AdminLeave />)} />
       <Route path="/admin/training" element={admin('training', <AdminTraining />)} />
       <Route path="/admin/settings" element={admin('settings', <AdminSettings />)} />
