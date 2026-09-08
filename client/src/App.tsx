@@ -30,7 +30,9 @@ const AdminSettings = lazyRoute('AdminSettings', () => import('@/pages/admin/Adm
 const AdminAudit = lazyRoute('AdminAudit', () => import('@/pages/admin/AdminAudit').then((m) => ({ default: m.AdminAudit })));
 const AdminTraining = lazyRoute('AdminTraining', () => import('@/pages/admin/AdminTraining').then((m) => ({ default: m.AdminTraining })));
 const ProfilePage = lazyRoute('ProfilePage', () => import('@/pages/ProfilePage').then((m) => ({ default: m.ProfilePage })));
+const StaffDashboard = lazyRoute('StaffDashboard', () => import('@/pages/staff/StaffDashboard').then((m) => ({ default: m.StaffDashboard })));
 const StaffLeave = lazyRoute('StaffLeave', () => import('@/pages/staff/StaffLeave').then((m) => ({ default: m.StaffLeave })));
+const StaffReports = lazyRoute('StaffReports', () => import('@/pages/staff/StaffReports').then((m) => ({ default: m.StaffReports })));
 const StaffTraining = lazyRoute('StaffTraining', () => import('@/pages/staff/StaffTraining').then((m) => ({ default: m.StaffTraining })));
 
 function AppLoading() {
@@ -179,7 +181,10 @@ function AppRoutes() {
       {/* Hồ sơ cá nhân — ai đăng nhập cũng có, layout theo vai trò */}
       <Route path="/profile" element={<ProtectedRoute><OwnLayout><ProfilePage /></OwnLayout></ProtectedRoute>} />
 
+      {/* Staff routes */}
+      <Route path="/staff/dashboard" element={staff(<StaffDashboard />)} />
       <Route path="/staff/leave" element={staff(<StaffLeave />)} />
+      <Route path="/staff/reports" element={staff(<StaffReports />)} />
       <Route path="/staff/training" element={staff(<StaffTraining />)} />
       <Route path="/staff/growth" element={<Navigate to="/staff/dashboard" replace />} />
 
