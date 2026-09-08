@@ -32,12 +32,16 @@ export interface AdminNavItem {
  * nhân sự → vận hành công việc & thời gian → phát triển → hệ thống.
  */
 export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
+  { to: '/admin/overview', label: 'Tổng quan điều hành', description: 'Toàn cảnh nhân sự và các cảnh báo cần xử lý', icon: LayoutGrid, permission: 'reports', group: 'Tổng quan', keywords: 'dieu hanh canh bao', functionCode: 'admin.overview' },
+  { to: '/admin/reports', label: 'Báo cáo & phân tích', description: 'Theo dõi xu hướng và xuất dữ liệu tổng hợp', icon: BarChart3, permission: 'reports', group: 'Tổng quan', keywords: 'thong ke bieu do xuat du lieu' },
+
   { to: '/admin/users', label: 'Hồ sơ nhân sự', description: 'Thông tin cá nhân, tình trạng làm việc và giấy tờ nhân viên', icon: Users, permission: 'users', group: 'Nhân sự', keywords: 'ho so nhan su danh ba nhan vien tai khoan' },
 
   { to: '/admin/leave', label: 'Trung tâm đơn từ', description: 'Duyệt nghỉ phép, đi muộn, về sớm, làm thêm và hủy phép', icon: ClipboardCheck, permission: 'leave', anyPermissions: ['leave', 'attendance', 'users'], group: 'Công', keywords: 'don tu xin nghi huy phep di muon ve som lam them tang ca' },
 
   { to: '/admin/training', label: 'Đào tạo', description: 'Khóa học, phân công và tiến độ học tập', icon: BookOpen, permission: 'training', group: 'Đào tạo', keywords: 'dao tao khoa hoc hoc tap' },
 
+  { to: '/admin/settings', label: 'Cấu hình hệ thống', description: 'Thiết lập vận hành dùng chung toàn tổ chức', icon: Settings, permission: 'settings', group: 'Hệ thống', keywords: 'cau hinh thiet lap' },
   { to: '/admin/audit', label: 'Nhật ký hệ thống', description: 'Truy vết thay đổi dữ liệu và thao tác quản trị', icon: ClipboardCheck, permission: 'settings', group: 'Hệ thống', keywords: 'audit log lich su truy vet', functionCode: 'admin.audit' },
 ];
 
@@ -55,6 +59,9 @@ export interface StaffNavItem {
  * Khi bổ sung chức năng mới, hai lối vào sẽ luôn xuất hiện đồng thời.
  */
 export const STAFF_NAV_ITEMS: StaffNavItem[] = [
+  { to: '/staff/dashboard', label: 'Trang chủ', description: 'Tổng quan công việc và lịch cá nhân hôm nay', icon: LayoutDashboard, group: 'Tổng quan', keywords: 'trang chu tong quan hom nay' },
+  { to: '/staff/reports', label: 'Báo cáo cá nhân', description: 'Ngày công, thời gian và kết quả của bạn', icon: FileBarChart, group: 'Tổng quan', keywords: 'bao cao ngay cong thoi gian ket qua' },
+
   { to: '/staff/leave', label: 'Đơn từ của tôi', description: 'Nghỉ phép, đi muộn, về sớm, OT và làm thêm ca đêm', icon: ClipboardList, group: 'Công', keywords: 'don tu xin nghi quy phep di muon ve som lam them tang ca ot ngay thuong chu nhat ngay le ca dem' },
 
   { to: '/staff/training', label: 'Đào tạo của tôi', description: 'Khóa học được giao và tiến độ hoàn thành', icon: BookOpen, group: 'Đào tạo', keywords: 'dao tao khoa hoc hoc tap' },
