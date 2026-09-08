@@ -39,6 +39,8 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
 
   { to: '/admin/leave', label: 'Trung tâm đơn từ', description: 'Duyệt nghỉ phép, đi muộn, về sớm, làm thêm và hủy phép', icon: ClipboardCheck, permission: 'leave', anyPermissions: ['leave', 'attendance', 'users'], group: 'Công', keywords: 'don tu xin nghi huy phep di muon ve som lam them tang ca' },
 
+  { to: '/admin/employee-lifecycle', label: 'Hội nhập nhân viên · Tham gia', description: 'Tiếp nhận nhân viên mới, checklist và tiến độ thử việc', icon: Rocket, permission: 'users', group: 'Đào tạo', keywords: 'onboarding tham gia checklist mentor', functionCode: 'admin.employee_lifecycle' },
+  { to: '/admin/employee-lifecycle/offboarding', label: 'Lưu trữ thông tin nghỉ việc', description: 'Checklist nghỉ việc, bàn giao và thu hồi tài sản', icon: UserMinus, permission: 'users', group: 'Đào tạo', keywords: 'offboarding nghi viec ban giao luu tru', functionCode: 'admin.employee_lifecycle' },
   { to: '/admin/training', label: 'Đào tạo', description: 'Khóa học, phân công và tiến độ học tập', icon: BookOpen, permission: 'training', group: 'Đào tạo', keywords: 'dao tao khoa hoc hoc tap' },
 
   { to: '/admin/settings', label: 'Cấu hình hệ thống', description: 'Thiết lập vận hành dùng chung toàn tổ chức', icon: Settings, permission: 'settings', group: 'Hệ thống', keywords: 'cau hinh thiet lap' },
