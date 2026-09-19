@@ -24,6 +24,7 @@ const ChangePasswordPage = lazyRoute('ChangePasswordPage', () => import('@/pages
 const SetupPage = lazyRoute('SetupPage', () => import('@/pages/auth/SetupPage').then((m) => ({ default: m.SetupPage })));
 const AdminOverview = lazyRoute('AdminOverview', () => import('@/pages/admin/AdminOverview').then((m) => ({ default: m.AdminOverview })));
 const AdminUsers = lazyRoute('AdminUsers', () => import('@/pages/admin/AdminUsers').then((m) => ({ default: m.AdminUsers })));
+const AdminProjects = lazyRoute('AdminProjects', () => import('@/pages/admin/AdminProjects').then((m) => ({ default: m.AdminProjects })));
 const AdminReports = lazyRoute('AdminReports', () => import('@/pages/admin/AdminReports').then((m) => ({ default: m.AdminReports })));
 const AdminAttendance = lazyRoute('AdminAttendance', () => import('@/pages/admin/AdminAttendance').then((m) => ({ default: m.AdminAttendance })));
 const AdminLeave = lazyRoute('AdminLeave', () => import('@/pages/admin/AdminLeave').then((m) => ({ default: m.AdminLeave })));
@@ -34,6 +35,7 @@ const AdminWorkforceCenter = lazyRoute('AdminWorkforceCenter', () => import('@/p
 const AdminNexusCenter = lazyRoute('AdminNexusCenter', () => import('@/pages/admin/AdminNexusCenter').then((m) => ({ default: m.AdminNexusCenter })));
 const ProfilePage = lazyRoute('ProfilePage', () => import('@/pages/ProfilePage').then((m) => ({ default: m.ProfilePage })));
 const StaffDashboard = lazyRoute('StaffDashboard', () => import('@/pages/staff/StaffDashboard').then((m) => ({ default: m.StaffDashboard })));
+const StaffProjects = lazyRoute('StaffProjects', () => import('@/pages/staff/StaffProjects').then((m) => ({ default: m.StaffProjects })));
 const StaffLeave = lazyRoute('StaffLeave', () => import('@/pages/staff/StaffLeave').then((m) => ({ default: m.StaffLeave })));
 const StaffReports = lazyRoute('StaffReports', () => import('@/pages/staff/StaffReports').then((m) => ({ default: m.StaffReports })));
 const StaffTraining = lazyRoute('StaffTraining', () => import('@/pages/staff/StaffTraining').then((m) => ({ default: m.StaffTraining })));
@@ -174,6 +176,7 @@ function AppRoutes() {
           bookmark của người dùng không chết. */}
       <Route path="/admin/dashboard" element={<Navigate to="/admin" replace />} />
       <Route path="/admin/users" element={admin('users', <AdminUsers />)} />
+      <Route path="/admin/projects" element={admin('projects', <AdminProjects />)} />
       <Route path="/admin/reports" element={admin('reports', <AdminReports />)} />
       <Route path="/admin/attendance" element={admin('attendance', <AdminAttendance />)} />
       <Route path="/admin/leave" element={adminAny(['leave', 'attendance', 'users'], <AdminLeave />)} />
@@ -190,6 +193,7 @@ function AppRoutes() {
 
       {/* Staff routes */}
       <Route path="/staff/dashboard" element={staff(<StaffDashboard />)} />
+      <Route path="/staff/projects"element={staff(<StaffProjects />)} />
       <Route path="/staff/leave" element={staff(<StaffLeave />)} />
       <Route path="/staff/reports" element={staff(<StaffReports />)} />
       <Route path="/staff/training" element={staff(<StaffTraining />)} />
