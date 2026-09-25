@@ -29,6 +29,7 @@ const AdminOrganization = lazyRoute('AdminOrganization', () => import('@/pages/a
 const AdminProjects = lazyRoute('AdminProjects', () => import('@/pages/admin/AdminProjects').then((m) => ({ default: m.AdminProjects })));
 const AdminReports = lazyRoute('AdminReports', () => import('@/pages/admin/AdminReports').then((m) => ({ default: m.AdminReports })));
 const AdminAttendance = lazyRoute('AdminAttendance', () => import('@/pages/admin/AdminAttendance').then((m) => ({ default: m.AdminAttendance })));
+const AdminPayroll = lazyRoute('AdminPayroll', () => import('@/pages/admin/AdminPayroll').then((m) => ({ default: m.AdminPayroll })));
 const AdminLeave = lazyRoute('AdminLeave', () => import('@/pages/admin/AdminLeave').then((m) => ({ default: m.AdminLeave })));
 const AdminSettings = lazyRoute('AdminSettings', () => import('@/pages/admin/AdminSettings').then((m) => ({ default: m.AdminSettings })));
 const AdminAudit = lazyRoute('AdminAudit', () => import('@/pages/admin/AdminAudit').then((m) => ({ default: m.AdminAudit })));
@@ -40,6 +41,7 @@ const StaffDashboard = lazyRoute('StaffDashboard', () => import('@/pages/staff/S
 const StaffProjects = lazyRoute('StaffProjects', () => import('@/pages/staff/StaffProjects').then((m) => ({ default: m.StaffProjects })));
 const StaffLeave = lazyRoute('StaffLeave', () => import('@/pages/staff/StaffLeave').then((m) => ({ default: m.StaffLeave })));
 const StaffReports = lazyRoute('StaffReports', () => import('@/pages/staff/StaffReports').then((m) => ({ default: m.StaffReports })));
+const StaffPayroll = lazyRoute('StaffPayroll', () => import('@/pages/staff/StaffPayroll').then((m) => ({ default: m.StaffPayroll })));
 const StaffTraining = lazyRoute('StaffTraining', () => import('@/pages/staff/StaffTraining').then((m) => ({ default: m.StaffTraining })));
 
 function AppLoading() {
@@ -182,6 +184,23 @@ function AppRoutes() {
       <Route path="/admin/projects" element={admin('projects', <AdminProjects />)} />
       <Route path="/admin/reports" element={admin('reports', <AdminReports />)} />
       <Route path="/admin/attendance" element={admin('attendance', <AdminAttendance />)} />
+      {/* Lương gắn route theo quyền attendance kèm MÃ CHỨC NĂNG riêng từng mục
+          (lead có quyền chấm công vẫn không vào được). RLS và RPC phía
+          database mới là hàng rào thật. */}
+      <Route path="/admin/payroll" element={admin('attendance', <AdminPayroll section="register" />, { functionCode: 'admin.payroll' })} />
+      <Route path="/admin/payroll/setup" element={<RedirectKeepQuery to="/admin/payroll/setup/params" />} />
+      <Route path="/admin/payroll/setup/schemes" element={admin('attendance', <AdminPayroll section="schemes" />, { functionCode: ['admin.payroll_settings', 'admin.payroll_schemes'] })} />
+      <Route path="/admin/payroll/setup/params" element={admin('attendance', <AdminPayroll section="params" />, { functionCode: 'admin.payroll_settings' })} />
+      <Route path="/admin/payroll/setup/timesheet" element={admin('attendance', <AdminPayroll section="timesheet" />, { functionCode: 'admin.payroll_settings' })} />
+      <Route path="/admin/payroll/setup/components" element={admin('attendance', <AdminPayroll section="catalog" />, { functionCode: 'admin.payroll_components' })} />
+      <Route path="/admin/payroll/schemes" element={<RedirectKeepQuery to="/admin/payroll/setup/schemes" />} />
+      <Route path="/admin/payroll/adjustments" element={admin('attendance', <AdminPayroll section="adjustments" />, { functionCode: 'admin.payroll_adjustments' })} />
+      <Route path="/admin/payroll/components" element={<RedirectKeepQuery to="/admin/payroll/setup/components" />} />
+      <Route path="/admin/payroll/params" element={<RedirectKeepQuery to="/admin/payroll/setup/params" />} />
+      {/* Trang cũ "Công thức theo khối" đã gộp vào Cơ chế lương. */}
+      <Route path="/admin/payroll/formulas" element={<Navigate to="/admin/payroll/setup/schemes" replace />} />
+      <Route path="/admin/payroll/reports" element={admin('attendance', <AdminPayroll section="reports" />, { functionCode: 'admin.payroll' })} />
+      <Route path="/admin/payroll/approvals" element={admin('attendance', <AdminPayroll section="approvals" />, { functionCode: 'admin.payroll_approve' })} />
       <Route path="/admin/leave" element={adminAny(['leave', 'attendance', 'users'], <AdminLeave />)} />
       <Route path="/admin/training" element={admin('training', <AdminTraining />)} />
       <Route path="/admin/workforce" element={admin('users', <AdminWorkforceCenter section="workers" />, { functionCode: 'admin.workforce' })} />
@@ -199,6 +218,7 @@ function AppRoutes() {
       <Route path="/staff/projects"element={staff(<StaffProjects />)} />
       <Route path="/staff/leave" element={staff(<StaffLeave />)} />
       <Route path="/staff/reports" element={staff(<StaffReports />)} />
+      <Route path="/staff/payroll" element={staff(<StaffPayroll />)} />
       <Route path="/staff/training" element={staff(<StaffTraining />)} />
       <Route path="/staff/growth" element={<Navigate to="/staff/dashboard" replace />} />
 
