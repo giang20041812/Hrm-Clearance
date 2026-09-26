@@ -29,6 +29,7 @@ const AdminOrganization = lazyRoute('AdminOrganization', () => import('@/pages/a
 const AdminProjects = lazyRoute('AdminProjects', () => import('@/pages/admin/AdminProjects').then((m) => ({ default: m.AdminProjects })));
 const AdminReports = lazyRoute('AdminReports', () => import('@/pages/admin/AdminReports').then((m) => ({ default: m.AdminReports })));
 const AdminAttendance = lazyRoute('AdminAttendance', () => import('@/pages/admin/AdminAttendance').then((m) => ({ default: m.AdminAttendance })));
+const AdminAttendanceDevices = lazyRoute('AdminAttendanceDevices', () => import('@/pages/admin/AdminAttendanceDevices').then((m) => ({ default: m.AdminAttendanceDevices })));
 const AdminPayroll = lazyRoute('AdminPayroll', () => import('@/pages/admin/AdminPayroll').then((m) => ({ default: m.AdminPayroll })));
 const AdminLeave = lazyRoute('AdminLeave', () => import('@/pages/admin/AdminLeave').then((m) => ({ default: m.AdminLeave })));
 const AdminSettings = lazyRoute('AdminSettings', () => import('@/pages/admin/AdminSettings').then((m) => ({ default: m.AdminSettings })));
@@ -184,6 +185,7 @@ function AppRoutes() {
       <Route path="/admin/projects" element={admin('projects', <AdminProjects />)} />
       <Route path="/admin/reports" element={admin('reports', <AdminReports />)} />
       <Route path="/admin/attendance" element={admin('attendance', <AdminAttendance />)} />
+      <Route path="/admin/attendance-devices" element={admin('attendance', <AdminAttendanceDevices />, { fullAdminOnly: true })} />
       {/* Lương gắn route theo quyền attendance kèm MÃ CHỨC NĂNG riêng từng mục
           (lead có quyền chấm công vẫn không vào được). RLS và RPC phía
           database mới là hàng rào thật. */}
