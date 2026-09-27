@@ -42,6 +42,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
 
   { to: '/admin/attendance', label: 'Duyệt chấm công', description: 'Kiểm tra check-in, check-out và xác nhận ngày công', icon: ClipboardCheck, permission: 'attendance', group: 'Công', keywords: 'duyet cham cong check in check out ngay cong' },
   { to: '/admin/leave', label: 'Trung tâm đơn từ', description: 'Duyệt nghỉ phép, đi muộn, về sớm, làm thêm và hủy phép', icon: ClipboardCheck, permission: 'leave', anyPermissions: ['leave', 'attendance', 'users'], group: 'Công', keywords: 'don tu xin nghi huy phep di muon ve som lam them tang ca' },
+  { to: '/admin/attendance-devices', label: 'Máy chấm công', description: 'Kết nối Ronald Jack, ánh xạ nhân viên và theo dõi đồng bộ', icon: Cpu, permission: 'attendance', group: 'Công', keywords: 'ronald jack zkteco van tay thiet bi', fullAdminOnly: true },
 
   // Module lương: Bảng lương lên đầu để vào module là vào thẳng bảng lương kỳ;
   // phê duyệt và thiết lập ở giữa; Báo cáo lương đưa xuống cuối sidebar.
@@ -77,6 +78,7 @@ export const STAFF_NAV_ITEMS: StaffNavItem[] = [
 
   { to: '/staff/projects', label: 'Dự án của tôi', description: 'Các dự án và thành viên đang cộng tác', icon: Briefcase, group: 'Dự án', keywords: 'du an project cong tac' },
 
+  { to: '/staff/attendance', label: 'Chấm công', description: 'Xem giờ vào từ máy và checkout cuối ngày', icon: Fingerprint, group: 'Công', keywords: 'gio vao may cham cong checkout van tay khuon mat' },
   { to: '/staff/leave', label: 'Đơn từ của tôi', description: 'Nghỉ phép, đi muộn, về sớm, OT và làm thêm ca đêm', icon: ClipboardList, group: 'Công', keywords: 'don tu xin nghi quy phep di muon ve som lam them tang ca ot ngay thuong chu nhat ngay le ca dem' },
 
   { to: '/staff/payroll', label: 'Lương của tôi', description: 'Xem phiếu lương và các khoản khấu trừ cá nhân', icon: WalletCards, group: 'Lương', keywords: 'luong phieu luong thu nhap payslip khau tru' },
