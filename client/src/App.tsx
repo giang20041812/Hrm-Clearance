@@ -15,6 +15,7 @@ import { hasAdminFunction, hasAnyAdminPermission, hasPermission, type AdminFunct
 import { AdminLayout } from '@/components/layouts/AdminLayout';
 import { StaffLayout } from '@/components/layouts/StaffLayout';
 import { ADMIN_NAV_ITEMS } from '@/config/navigation';
+import { KPI_SECTION_FUNCTIONS } from '@/lib/kpiAccess';
 
 // Mỗi module được tải khi người dùng thực sự mở tới. Việc này giữ lần tải đầu
 // nhẹ dù hệ thống tiếp tục mở rộng thêm nghiệp vụ và vai trò.
