@@ -37,6 +37,7 @@ const AdminSettings = lazyRoute('AdminSettings', () => import('@/pages/admin/Adm
 const AdminAudit = lazyRoute('AdminAudit', () => import('@/pages/admin/AdminAudit').then((m) => ({ default: m.AdminAudit })));
 const AdminTraining = lazyRoute('AdminTraining', () => import('@/pages/admin/AdminTraining').then((m) => ({ default: m.AdminTraining })));
 const AdminWorkforceCenter = lazyRoute('AdminWorkforceCenter', () => import('@/pages/admin/AdminWorkforceCenter').then((m) => ({ default: m.AdminWorkforceCenter })));
+const AdminKpi = lazyRoute('AdminKpi', () => import('@/pages/admin/AdminKpi').then((m) => ({ default: m.AdminKpi })));
 const AdminNexusCenter = lazyRoute('AdminNexusCenter', () => import('@/pages/admin/AdminNexusCenter').then((m) => ({ default: m.AdminNexusCenter })));
 const ProfilePage = lazyRoute('ProfilePage', () => import('@/pages/ProfilePage').then((m) => ({ default: m.ProfilePage })));
 const StaffDashboard = lazyRoute('StaffDashboard', () => import('@/pages/staff/StaffDashboard').then((m) => ({ default: m.StaffDashboard })));
@@ -210,6 +211,15 @@ function AppRoutes() {
       <Route path="/admin/workforce" element={admin('users', <AdminWorkforceCenter section="workers" />, { functionCode: 'admin.workforce' })} />
       <Route path="/admin/employee-lifecycle" element={admin('users', <AdminNexusCenter section="lifecycle" />, { functionCode: 'admin.employee_lifecycle' })} />
       <Route path="/admin/employee-lifecycle/offboarding" element={admin('users', <AdminNexusCenter section="offboarding" />, { functionCode: 'admin.employee_lifecycle' })} />
+      <Route path="/admin/performance" element={admin('reports', <AdminKpi section="sets" />, { functionCode: KPI_SECTION_FUNCTIONS.sets })} />
+      <Route path="/admin/performance/schemes" element={<Navigate to="/admin/performance" replace />} />
+      <Route path="/admin/performance/review" element={admin('reports', <AdminKpi section="sheets" />, { functionCode: KPI_SECTION_FUNCTIONS.sheets })} />
+      <Route path="/admin/performance/sales" element={admin('reports', <AdminKpi section="sales" />, { functionCode: KPI_SECTION_FUNCTIONS.sales })} />
+      <Route path="/admin/performance/report" element={admin('reports', <AdminKpi section="report" />, { functionCode: KPI_SECTION_FUNCTIONS.report })} />
+      <Route path="/admin/performance/settings" element={admin('reports', <AdminKpi section="settings" />, { functionCode: KPI_SECTION_FUNCTIONS.settings })} />
+      {/* Cờ GPS được quản lý ngay trong Địa điểm chấm công. Các cờ kỹ thuật
+          cũ không còn là module người dùng độc lập. */}
+      <Route path="/admin/feature-flags" element={<Navigate to="/admin/settings" replace />} />
       <Route path="/admin/settings" element={admin('settings', <AdminSettings />)} />
       {/* Nhật ký hệ thống — quyền module + chức năng nâng cao; RLS là hàng rào cuối. */}
       <Route path="/admin/audit" element={admin('settings', <AdminAudit />, { functionCode: 'admin.audit' })} />
