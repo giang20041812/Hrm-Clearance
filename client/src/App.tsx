@@ -31,6 +31,7 @@ const AdminReports = lazyRoute('AdminReports', () => import('@/pages/admin/Admin
 const AdminAttendance = lazyRoute('AdminAttendance', () => import('@/pages/admin/AdminAttendance').then((m) => ({ default: m.AdminAttendance })));
 const AdminAttendanceDevices = lazyRoute('AdminAttendanceDevices', () => import('@/pages/admin/AdminAttendanceDevices').then((m) => ({ default: m.AdminAttendanceDevices })));
 const AdminPayroll = lazyRoute('AdminPayroll', () => import('@/pages/admin/AdminPayroll').then((m) => ({ default: m.AdminPayroll })));
+const AdminAssignments = lazyRoute('AdminAssignments', () => import('@/pages/admin/AdminAssignments').then((m) => ({ default: m.AdminAssignments })));
 const AdminLeave = lazyRoute('AdminLeave', () => import('@/pages/admin/AdminLeave').then((m) => ({ default: m.AdminLeave })));
 const AdminSettings = lazyRoute('AdminSettings', () => import('@/pages/admin/AdminSettings').then((m) => ({ default: m.AdminSettings })));
 const AdminAttendanceSettings = lazyRoute('AdminAttendanceSettings', () => import('@/pages/admin/AdminAttendanceSettings').then((m) => ({ default: m.AdminAttendanceSettings })));
@@ -187,6 +188,7 @@ function AppRoutes() {
       <Route path="/admin/organization"element={admin('users', <AdminOrganization />)} />
       <Route path="/admin/projects" element={admin('projects', <AdminProjects />)} />
       <Route path="/admin/reports" element={admin('reports', <AdminReports />)} />
+      <Route path="/admin/assignments" element={admin('attendance', <AdminAssignments />)} />
       <Route path="/admin/attendance" element={admin('attendance', <AdminAttendance />)} />
       <Route path="/admin/attendance-devices" element={admin('attendance', <AdminAttendanceDevices />, { fullAdminOnly: true })} />
       <Route path="/admin/attendance-settings" element={admin('attendance', <AdminAttendanceSettings />, { denyTeamlead: true })} />
