@@ -54,6 +54,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
 
   { to: '/admin/employee-lifecycle', label: 'Hội nhập nhân viên · Tham gia', description: 'Tiếp nhận nhân viên mới, checklist và tiến độ thử việc', icon: Rocket, permission: 'users', group: 'Đào tạo', keywords: 'onboarding tham gia checklist mentor', functionCode: 'admin.employee_lifecycle' },
   { to: '/admin/employee-lifecycle/offboarding', label: 'Lưu trữ thông tin nghỉ việc', description: 'Checklist nghỉ việc, bàn giao và thu hồi tài sản', icon: UserMinus, permission: 'users', group: 'Đào tạo', keywords: 'offboarding nghi viec ban giao luu tru', functionCode: 'admin.employee_lifecycle' },
+  { to: '/admin/process-library', label: 'Thư viện quy trình', description: 'Quy trình, quy chế và hướng dẫn vận hành', icon: BookOpen, permission: 'training', group: 'Đào tạo', keywords: 'thu vien quy trinh quy che huong dan pdf' },
   { to: '/admin/training', label: 'Đào tạo', description: 'Khóa học, phân công và tiến độ học tập', icon: BookOpen, permission: 'training', group: 'Đào tạo', keywords: 'dao tao khoa hoc hoc tap' },
 
   { to: '/admin/settings', label: 'Cấu hình hệ thống', description: 'Thiết lập vận hành dùng chung toàn tổ chức', icon: Settings, permission: 'settings', group: 'Hệ thống', keywords: 'cau hinh thiet lap' },
@@ -85,6 +86,7 @@ export const STAFF_NAV_ITEMS: StaffNavItem[] = [
   { to: '/staff/payroll', label: 'Lương của tôi', description: 'Xem phiếu lương và các khoản khấu trừ cá nhân', icon: WalletCards, group: 'Lương', keywords: 'luong phieu luong thu nhap payslip khau tru' },
 
   { to: '/staff/training', label: 'Đào tạo của tôi', description: 'Khóa học được giao và tiến độ hoàn thành', icon: BookOpen, group: 'Đào tạo', keywords: 'dao tao khoa hoc hoc tap' },
+  { to: '/staff/processes', label: 'Quy trình & biểu mẫu', description: 'Tài liệu đang hiệu lực của công ty', icon: BookOpen, group: 'Đào tạo', keywords: 'quy trinh bieu mau tai lieu quy che' },
 ];
 
 /**
