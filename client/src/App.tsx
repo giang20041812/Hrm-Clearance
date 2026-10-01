@@ -47,6 +47,7 @@ const StaffLeave = lazyRoute('StaffLeave', () => import('@/pages/staff/StaffLeav
 const StaffReports = lazyRoute('StaffReports', () => import('@/pages/staff/StaffReports').then((m) => ({ default: m.StaffReports })));
 const StaffPayroll = lazyRoute('StaffPayroll', () => import('@/pages/staff/StaffPayroll').then((m) => ({ default: m.StaffPayroll })));
 const StaffTraining = lazyRoute('StaffTraining', () => import('@/pages/staff/StaffTraining').then((m) => ({ default: m.StaffTraining })));
+const StaffKpi = lazyRoute('StaffKpi', () => import('@/pages/staff/StaffKpi').then((m) => ({ default: m.StaffKpi })));
 
 function AppLoading() {
   return (
@@ -236,6 +237,7 @@ function AppRoutes() {
       <Route path="/staff/payroll" element={staff(<StaffPayroll />)} />
       <Route path="/staff/training" element={staff(<StaffTraining />)} />
       <Route path="/staff/growth" element={<Navigate to="/staff/dashboard" replace />} />
+      <Route path="/staff/kpi" element={staff(<StaffKpi />)} />
 
       {/* Fallback */}
       <Route path="*" element={<AuthRedirect />} />
