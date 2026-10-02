@@ -15,6 +15,7 @@ import { hasAdminFunction, hasAnyAdminPermission, hasPermission, type AdminFunct
 import { AdminLayout } from '@/components/layouts/AdminLayout';
 import { StaffLayout } from '@/components/layouts/StaffLayout';
 import { ADMIN_NAV_ITEMS } from '@/config/navigation';
+import { KPI_SECTION_FUNCTIONS } from '@/lib/kpiAccess';
 
 // Mỗi module được tải khi người dùng thực sự mở tới. Việc này giữ lần tải đầu
 // nhẹ dù hệ thống tiếp tục mở rộng thêm nghiệp vụ và vai trò.
@@ -39,6 +40,7 @@ const AdminAudit = lazyRoute('AdminAudit', () => import('@/pages/admin/AdminAudi
 const AdminTraining = lazyRoute('AdminTraining', () => import('@/pages/admin/AdminTraining').then((m) => ({ default: m.AdminTraining })));
 const AdminRecruitment = lazyRoute('AdminRecruitment', () => import('@/pages/admin/AdminRecruitment').then((m) => ({ default: m.AdminRecruitment })));
 const AdminWorkforceCenter = lazyRoute('AdminWorkforceCenter', () => import('@/pages/admin/AdminWorkforceCenter').then((m) => ({ default: m.AdminWorkforceCenter })));
+const AdminKpi = lazyRoute('AdminKpi', () => import('@/pages/admin/AdminKpi').then((m) => ({ default: m.AdminKpi })));
 const AdminNexusCenter = lazyRoute('AdminNexusCenter', () => import('@/pages/admin/AdminNexusCenter').then((m) => ({ default: m.AdminNexusCenter })));
 const ProfilePage = lazyRoute('ProfilePage', () => import('@/pages/ProfilePage').then((m) => ({ default: m.ProfilePage })));
 const StaffDashboard = lazyRoute('StaffDashboard', () => import('@/pages/staff/StaffDashboard').then((m) => ({ default: m.StaffDashboard })));
@@ -49,6 +51,7 @@ const StaffLeave = lazyRoute('StaffLeave', () => import('@/pages/staff/StaffLeav
 const StaffReports = lazyRoute('StaffReports', () => import('@/pages/staff/StaffReports').then((m) => ({ default: m.StaffReports })));
 const StaffPayroll = lazyRoute('StaffPayroll', () => import('@/pages/staff/StaffPayroll').then((m) => ({ default: m.StaffPayroll })));
 const StaffTraining = lazyRoute('StaffTraining', () => import('@/pages/staff/StaffTraining').then((m) => ({ default: m.StaffTraining })));
+const StaffKpi = lazyRoute('StaffKpi', () => import('@/pages/staff/StaffKpi').then((m) => ({ default: m.StaffKpi })));
 
 function AppLoading() {
   return (
@@ -217,6 +220,15 @@ function AppRoutes() {
       <Route path="/admin/workforce" element={admin('users', <AdminWorkforceCenter section="workers" />, { functionCode: 'admin.workforce' })} />
       <Route path="/admin/employee-lifecycle" element={admin('users', <AdminNexusCenter section="lifecycle" />, { functionCode: 'admin.employee_lifecycle' })} />
       <Route path="/admin/employee-lifecycle/offboarding" element={admin('users', <AdminNexusCenter section="offboarding" />, { functionCode: 'admin.employee_lifecycle' })} />
+      <Route path="/admin/performance" element={admin('reports', <AdminKpi section="sets" />, { functionCode: KPI_SECTION_FUNCTIONS.sets })} />
+      <Route path="/admin/performance/schemes" element={<Navigate to="/admin/performance" replace />} />
+      <Route path="/admin/performance/review" element={admin('reports', <AdminKpi section="sheets" />, { functionCode: KPI_SECTION_FUNCTIONS.sheets })} />
+      <Route path="/admin/performance/sales" element={admin('reports', <AdminKpi section="sales" />, { functionCode: KPI_SECTION_FUNCTIONS.sales })} />
+      <Route path="/admin/performance/report" element={admin('reports', <AdminKpi section="report" />, { functionCode: KPI_SECTION_FUNCTIONS.report })} />
+      <Route path="/admin/performance/settings" element={admin('reports', <AdminKpi section="settings" />, { functionCode: KPI_SECTION_FUNCTIONS.settings })} />
+      {/* Cờ GPS được quản lý ngay trong Địa điểm chấm công. Các cờ kỹ thuật
+          cũ không còn là module người dùng độc lập. */}
+      <Route path="/admin/feature-flags" element={<Navigate to="/admin/settings" replace />} />
       <Route path="/admin/settings" element={admin('settings', <AdminSettings />)} />
       {/* Nhật ký hệ thống — quyền module + chức năng nâng cao; RLS là hàng rào cuối. */}
       <Route path="/admin/audit" element={admin('settings', <AdminAudit />, { functionCode: 'admin.audit' })} />
@@ -234,6 +246,7 @@ function AppRoutes() {
       <Route path="/staff/payroll" element={staff(<StaffPayroll />)} />
       <Route path="/staff/training" element={staff(<StaffTraining />)} />
       <Route path="/staff/growth" element={<Navigate to="/staff/dashboard" replace />} />
+      <Route path="/staff/kpi" element={staff(<StaffKpi />)} />
 
       {/* Fallback */}
       <Route path="*" element={<AuthRedirect />} />

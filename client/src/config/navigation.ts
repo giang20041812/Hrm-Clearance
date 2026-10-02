@@ -59,6 +59,14 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   { to: '/admin/employee-lifecycle/offboarding', label: 'Lưu trữ thông tin nghỉ việc', description: 'Checklist nghỉ việc, bàn giao và thu hồi tài sản', icon: UserMinus, permission: 'users', group: 'Đào tạo', keywords: 'offboarding nghi viec ban giao luu tru', functionCode: 'admin.employee_lifecycle' },
   { to: '/admin/training', label: 'Đào tạo', description: 'Khóa học, phân công và tiến độ học tập', icon: BookOpen, permission: 'training', group: 'Đào tạo', keywords: 'dao tao khoa hoc hoc tap' },
 
+  // Module KPI: Phiếu KPI tháng lên đầu để vào module là vào thẳng chấm và duyệt phiếu;
+  // Báo cáo KPI đưa xuống cuối sidebar.
+  { to: '/admin/performance/review', label: 'Phiếu KPI tháng', description: 'Chấm, duyệt, khoá sổ và đối soát sang lương', icon: ClipboardCheck, permission: 'reports', group: 'KPI', keywords: 'phieu kpi cham diem duyet khoa so thang', functionCode: ['admin.performance_manage', 'admin.kpi_approve', 'admin.kpi_close'] },
+  { to: '/admin/performance/sales', label: 'Chỉ tiêu kinh doanh', description: 'Doanh số khoán, thu tiền, khách hàng và số thực hiện', icon: TrendingUp, permission: 'reports', group: 'KPI', keywords: 'chi tieu kinh doanh doanh so khoan thu tien amis', functionCode: ['admin.performance_manage', 'admin.kpi_approve', 'admin.kpi_close'] },
+  { to: '/admin/performance', label: 'Bộ KPI', description: 'Bộ tiêu chí theo phòng ban, vị trí hoặc từng người', icon: Target, permission: 'reports', group: 'KPI', keywords: 'kpi bo tieu chi hang muc ty trong vi tri phong ban ca nhan', functionCode: 'admin.performance_manage' },
+  { to: '/admin/performance/settings', label: 'Tham số KPI', description: 'Xếp loại, trần, lịch kỳ và liên kết sang lương', icon: SlidersHorizontal, permission: 'reports', group: 'KPI', keywords: 'tham so kpi xep loai tran lich ky lien ket luong', functionCode: 'admin.performance_manage' },
+  { to: '/admin/performance/report', label: 'Báo cáo KPI', description: 'Tiến độ kỳ, kết quả tháng, quý, năm và xét thưởng', icon: BarChart3, permission: 'reports', group: 'KPI', keywords: 'bao cao kpi xep loai quy nam thuong tang luong', functionCode: ['admin.performance_manage', 'admin.kpi_approve', 'admin.kpi_close'] },
+
   { to: '/admin/settings', label: 'Cấu hình hệ thống', description: 'Thiết lập vận hành dùng chung toàn tổ chức', icon: Settings, permission: 'settings', group: 'Hệ thống', keywords: 'cau hinh thiet lap' },
   { to: '/admin/audit', label: 'Nhật ký hệ thống', description: 'Truy vết thay đổi dữ liệu và thao tác quản trị', icon: ClipboardCheck, permission: 'settings', group: 'Hệ thống', keywords: 'audit log lich su truy vet', functionCode: 'admin.audit' },
 ];
@@ -87,6 +95,7 @@ export const STAFF_NAV_ITEMS: StaffNavItem[] = [
 
   { to: '/staff/payroll', label: 'Lương của tôi', description: 'Xem phiếu lương và các khoản khấu trừ cá nhân', icon: WalletCards, group: 'Lương', keywords: 'luong phieu luong thu nhap payslip khau tru' },
 
+  { to: '/staff/kpi', label: 'KPI của tôi', description: 'Tự chấm, kết quả và phiếu cần chấm của nhóm', icon: Target, group: 'KPI', keywords: 'kpi danh gia cham diem tieu chi tu cham' },
   { to: '/staff/training', label: 'Đào tạo của tôi', description: 'Khóa học được giao và tiến độ hoàn thành', icon: BookOpen, group: 'Đào tạo', keywords: 'dao tao khoa hoc hoc tap' },
 ];
 
