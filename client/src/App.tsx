@@ -11,6 +11,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { IsolatedBoundary } from '@/components/PageErrorBoundary';
 import { CommandPalette } from '@/components/CommandPalette';
 import { InstallPrompt } from '@/components/InstallPrompt';
+import { PhoneNotificationPrompt } from '@/components/PhoneNotificationPrompt';
 import { hasAdminFunction, hasAnyAdminPermission, hasPermission, type AdminFunctionCode, type AdminPermission } from '@/lib/permissions';
 import { AdminLayout } from '@/components/layouts/AdminLayout';
 import { StaffLayout } from '@/components/layouts/StaffLayout';
@@ -276,6 +277,9 @@ export default function App() {
                   <IsolatedBoundary><CommandPalette /></IsolatedBoundary>
                   {/* Dải mời cài app — chỉ hiện khi trình duyệt thực sự cài được. */}
                   <IsolatedBoundary><InstallPrompt /></IsolatedBoundary>
+                  {/* Xin quyền bằng thao tác rõ ràng của người dùng; trình duyệt
+                      không cho phép hệ thống tự bật thông báo. */}
+                  <IsolatedBoundary><PhoneNotificationPrompt /></IsolatedBoundary>
                 </ViewModeProvider>
               </SettingsProvider>
             </AuthProvider>
