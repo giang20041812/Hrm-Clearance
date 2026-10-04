@@ -32,6 +32,8 @@ const AdminProjects = lazyRoute('AdminProjects', () => import('@/pages/admin/Adm
 const AdminReports = lazyRoute('AdminReports', () => import('@/pages/admin/AdminReports').then((m) => ({ default: m.AdminReports })));
 const AdminAttendance = lazyRoute('AdminAttendance', () => import('@/pages/admin/AdminAttendance').then((m) => ({ default: m.AdminAttendance })));
 const AdminAttendanceDevices = lazyRoute('AdminAttendanceDevices', () => import('@/pages/admin/AdminAttendanceDevices').then((m) => ({ default: m.AdminAttendanceDevices })));
+const AdminTimesheet = lazyRoute('AdminTimesheet', () => import('@/pages/admin/AdminTimesheet').then((m) => ({ default: m.AdminTimesheet })));
+const AdminAttendanceReports = lazyRoute('AdminAttendanceReports', () => import('@/pages/admin/AdminAttendanceReports').then((m) => ({ default: m.AdminAttendanceReports })));
 const AdminPayroll = lazyRoute('AdminPayroll', () => import('@/pages/admin/AdminPayroll').then((m) => ({ default: m.AdminPayroll })));
 const AdminAssignments = lazyRoute('AdminAssignments', () => import('@/pages/admin/AdminAssignments').then((m) => ({ default: m.AdminAssignments })));
 const AdminLeave = lazyRoute('AdminLeave', () => import('@/pages/admin/AdminLeave').then((m) => ({ default: m.AdminLeave })));
@@ -196,6 +198,9 @@ function AppRoutes() {
       <Route path="/admin/assignments" element={admin('attendance', <AdminAssignments />)} />
       <Route path="/admin/attendance" element={admin('attendance', <AdminAttendance />)} />
       <Route path="/admin/attendance-devices" element={admin('attendance', <AdminAttendanceDevices />, { fullAdminOnly: true })} />
+      <Route path="/admin/timesheet" element={admin('attendance', <AdminTimesheet />, { denyTeamlead: true })} />
+      <Route path="/admin/attendance/reports" element={adminAny(['attendance', 'reports'], <AdminAttendanceReports />)} />
+      <Route path="/admin/attendance-reports" element={<Navigate to="/admin/attendance/reports" replace />} />
       <Route path="/admin/attendance-settings" element={admin('attendance', <AdminAttendanceSettings />, { denyTeamlead: true })} />
       <Route path="/admin/work-locations" element={<Navigate to="/admin/attendance-devices" replace />} />
       {/* Lương gắn route theo quyền attendance kèm MÃ CHỨC NĂNG riêng từng mục

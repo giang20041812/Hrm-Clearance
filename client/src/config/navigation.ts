@@ -43,10 +43,12 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   { to: '/admin/projects', label: 'Dự án', description: 'Dự án, thành viên, mốc và tác vụ', icon: FolderKanban, permission: 'projects', group: 'Dự án', keywords: 'project tac vu' },
   { to: '/admin/assignments', label: 'Giao việc hằng ngày', description: 'Phân công và xác nhận kết quả công việc trong ngày', icon: ClipboardList, permission: 'attendance', group: 'Giao việc', keywords: 'giao viec phan cong xac nhan' },
 
+  { to: '/admin/timesheet', label: 'Bảng công tháng', description: 'Tổng hợp ngày công đã duyệt và xuất Excel', icon: Table, permission: 'attendance', group: 'Công', keywords: 'bang cong xuat excel timesheet', hideForTeamlead: true },
   { to: '/admin/attendance', label: 'Duyệt chấm công', description: 'Kiểm tra check-in, check-out và xác nhận ngày công', icon: ClipboardCheck, permission: 'attendance', group: 'Công', keywords: 'duyet cham cong check in check out ngay cong' },
   { to: '/admin/leave', label: 'Trung tâm đơn từ', description: 'Duyệt nghỉ phép, đi muộn, về sớm, làm thêm và hủy phép', icon: ClipboardCheck, permission: 'leave', anyPermissions: ['leave', 'attendance', 'users'], group: 'Công', keywords: 'don tu xin nghi huy phep di muon ve som lam them tang ca' },
   { to: '/admin/attendance-devices', label: 'Máy chấm công', description: 'Kết nối Ronald Jack, ánh xạ nhân viên và theo dõi đồng bộ', icon: Cpu, permission: 'attendance', group: 'Công', keywords: 'ronald jack zkteco van tay thiet bi', fullAdminOnly: true },
   { to: '/admin/attendance-settings', label: 'Thiết lập giờ làm', description: 'Giờ làm cố định, công chuẩn và định mức phép', icon: Clock, permission: 'attendance', group: 'Công', keywords: 'gio lam co dinh gio vao ra cong chuan di muon', hideForTeamlead: true },
+  { to: '/admin/attendance/reports', label: 'Báo cáo công', description: 'Tổng hợp chuyên cần, đi muộn, làm thêm và nghỉ phép theo tháng', icon: BarChart3, permission: 'attendance', anyPermissions: ['attendance', 'reports'], group: 'Công', keywords: 'bao cao cong cham cong chuyen can di muon lam them ot nghi phep' },
 
   // Module lương: Bảng lương lên đầu để vào module là vào thẳng bảng lương kỳ;
   // phê duyệt và thiết lập ở giữa; Báo cáo lương đưa xuống cuối sidebar.
