@@ -29,6 +29,7 @@ const AdminOverview = lazyRoute('AdminOverview', () => import('@/pages/admin/Adm
 const AdminUsers = lazyRoute('AdminUsers', () => import('@/pages/admin/AdminUsers').then((m) => ({ default: m.AdminUsers })));
 const AdminOrganization = lazyRoute('AdminOrganization', () => import('@/pages/admin/AdminOrganization').then((m) => ({ default: m.AdminOrganization })));
 const AdminProjects = lazyRoute('AdminProjects', () => import('@/pages/admin/AdminProjects').then((m) => ({ default: m.AdminProjects })));
+const AdminProjectDetail = lazyRoute('AdminProjectDetail', () => import('@/pages/admin/AdminProjectDetail').then((m) => ({ default: m.AdminProjectDetail })));
 const AdminReports = lazyRoute('AdminReports', () => import('@/pages/admin/AdminReports').then((m) => ({ default: m.AdminReports })));
 const AdminAttendance = lazyRoute('AdminAttendance', () => import('@/pages/admin/AdminAttendance').then((m) => ({ default: m.AdminAttendance })));
 const AdminAttendanceDevices = lazyRoute('AdminAttendanceDevices', () => import('@/pages/admin/AdminAttendanceDevices').then((m) => ({ default: m.AdminAttendanceDevices })));
@@ -196,6 +197,7 @@ function AppRoutes() {
       <Route path="/admin/users" element={admin('users', <AdminUsers />)} />
       <Route path="/admin/organization"element={admin('users', <AdminOrganization />)} />
       <Route path="/admin/projects" element={admin('projects', <AdminProjects />)} />
+      <Route path="/admin/projects/:id" element={admin('projects', <AdminProjectDetail />)} />
       <Route path="/admin/reports" element={admin('reports', <AdminReports />)} />
       <Route path="/admin/assignments" element={admin('attendance', <AdminAssignments />)} />
       <Route path="/admin/attendance" element={admin('attendance', <AdminAttendance />)} />
