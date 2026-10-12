@@ -92,6 +92,7 @@ export const STAFF_NAV_ITEMS: StaffNavItem[] = [
   { to: '/staff/reports', label: 'Báo cáo cá nhân', description: 'Ngày công, thời gian và kết quả của bạn', icon: FileBarChart, group: 'Tổng quan', keywords: 'bao cao ngay cong thoi gian ket qua' },
 
   { to: '/staff/projects', label: 'Dự án của tôi', description: 'Các dự án và thành viên đang cộng tác', icon: Briefcase, group: 'Dự án', keywords: 'du an project cong tac' },
+  { to: '/staff/kanban', label: 'Kanban dự án', description: 'Theo dõi và cập nhật task theo từng dự án', icon: KanbanSquare, group: 'Dự án', keywords: 'kanban bang cong viec task trang thai keo tha' },
 
   { to: '/staff/attendance', label: 'Chấm công', description: 'Xem giờ vào từ máy và checkout cuối ngày', icon: Fingerprint, group: 'Công', keywords: 'gio vao may cham cong checkout van tay khuon mat' },
   { to: '/staff/leave', label: 'Đơn từ của tôi', description: 'Nghỉ phép, đi muộn, về sớm, OT và làm thêm ca đêm', icon: ClipboardList, group: 'Công', keywords: 'don tu xin nghi quy phep di muon ve som lam them tang ca ot ngay thuong chu nhat ngay le ca dem' },

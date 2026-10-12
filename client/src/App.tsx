@@ -51,6 +51,7 @@ const ProfilePage = lazyRoute('ProfilePage', () => import('@/pages/ProfilePage')
 const StaffDashboard = lazyRoute('StaffDashboard', () => import('@/pages/staff/StaffDashboard').then((m) => ({ default: m.StaffDashboard })));
 const StaffAssignments = lazyRoute('StaffAssignments', () => import('@/pages/staff/StaffAssignments').then((m) => ({ default: m.StaffAssignments })));
 const StaffProjects = lazyRoute('StaffProjects', () => import('@/pages/staff/StaffProjects').then((m) => ({ default: m.StaffProjects })));
+const StaffKanban = lazyRoute('StaffKanban', () => import('@/pages/staff/StaffKanban').then((m) => ({ default: m.StaffKanban })));
 const StaffAttendance = lazyRoute('StaffDeviceAttendance', () => import('@/pages/staff/StaffDeviceAttendance').then((m) => ({ default: m.StaffDeviceAttendance })));
 const StaffLeave = lazyRoute('StaffLeave', () => import('@/pages/staff/StaffLeave').then((m) => ({ default: m.StaffLeave })));
 const StaffReports = lazyRoute('StaffReports', () => import('@/pages/staff/StaffReports').then((m) => ({ default: m.StaffReports })));
@@ -251,6 +252,7 @@ function AppRoutes() {
       <Route path="/staff/dashboard" element={staff(<StaffDashboard />)} />
       <Route path="/staff/assignments" element={staff(<StaffAssignments />)} />
       <Route path="/staff/projects"element={staff(<StaffProjects />)} />
+      <Route path="/staff/kanban" element={staff(<StaffKanban />)} />
       <Route path="/staff/attendance" element={staff(<StaffAttendance />)} />
       <Route path="/staff/leave" element={staff(<StaffLeave />)} />
       <Route path="/staff/reports" element={staff(<StaffReports />)} />
