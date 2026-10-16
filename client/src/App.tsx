@@ -44,6 +44,7 @@ const AdminProcessLibrary = lazyRoute('AdminProcessLibrary', () => import('@/pag
 const AdminTraining = lazyRoute('AdminTraining', () => import('@/pages/admin/AdminTraining').then((m) => ({ default: m.AdminTraining })));
 const AdminRecruitment = lazyRoute('AdminRecruitment', () => import('@/pages/admin/AdminRecruitment').then((m) => ({ default: m.AdminRecruitment })));
 const AdminWorkforceCenter = lazyRoute('AdminWorkforceCenter', () => import('@/pages/admin/AdminWorkforceCenter').then((m) => ({ default: m.AdminWorkforceCenter })));
+const AdminDocumentRepository = lazyRoute('AdminDocumentRepository', () => import('@/pages/admin/AdminDocumentRepository').then((m) => ({ default: m.AdminDocumentRepository })));
 const AdminKpi = lazyRoute('AdminKpi', () => import('@/pages/admin/AdminKpi').then((m) => ({ default: m.AdminKpi })));
 const AdminNexusCenter = lazyRoute('AdminNexusCenter', () => import('@/pages/admin/AdminNexusCenter').then((m) => ({ default: m.AdminNexusCenter })));
 const ProfilePage = lazyRoute('ProfilePage', () => import('@/pages/ProfilePage').then((m) => ({ default: m.ProfilePage })));
@@ -227,6 +228,7 @@ function AppRoutes() {
       <Route path="/admin/process-library" element={admin('training', <AdminProcessLibrary />)} />
       <Route path="/admin/recruitment" element={adminAny(['users', 'projects'], <AdminRecruitment />)} />
       <Route path="/admin/workforce" element={admin('users', <AdminWorkforceCenter section="workers" />, { functionCode: 'admin.workforce' })} />
+      <Route path="/admin/worker-documents" element={admin('users', <AdminDocumentRepository />, { functionCode: 'admin.worker_documents', teamleadEmployeeDocuments: true })} />
       <Route path="/admin/employee-lifecycle" element={admin('users', <AdminNexusCenter section="lifecycle" />, { functionCode: 'admin.employee_lifecycle' })} />
       <Route path="/admin/employee-lifecycle/offboarding" element={admin('users', <AdminNexusCenter section="offboarding" />, { functionCode: 'admin.employee_lifecycle' })} />
       <Route path="/admin/performance" element={admin('reports', <AdminKpi section="sets" />, { functionCode: KPI_SECTION_FUNCTIONS.sets })} />
