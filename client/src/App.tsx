@@ -29,6 +29,7 @@ const AdminOverview = lazyRoute('AdminOverview', () => import('@/pages/admin/Adm
 const AdminUsers = lazyRoute('AdminUsers', () => import('@/pages/admin/AdminUsers').then((m) => ({ default: m.AdminUsers })));
 const AdminOrganization = lazyRoute('AdminOrganization', () => import('@/pages/admin/AdminOrganization').then((m) => ({ default: m.AdminOrganization })));
 const AdminProjects = lazyRoute('AdminProjects', () => import('@/pages/admin/AdminProjects').then((m) => ({ default: m.AdminProjects })));
+const AdminProjectDetail = lazyRoute('AdminProjectDetail', () => import('@/pages/admin/AdminProjectDetail').then((m) => ({ default: m.AdminProjectDetail })));
 const AdminReports = lazyRoute('AdminReports', () => import('@/pages/admin/AdminReports').then((m) => ({ default: m.AdminReports })));
 const AdminAttendance = lazyRoute('AdminAttendance', () => import('@/pages/admin/AdminAttendance').then((m) => ({ default: m.AdminAttendance })));
 const AdminAttendanceDevices = lazyRoute('AdminAttendanceDevices', () => import('@/pages/admin/AdminAttendanceDevices').then((m) => ({ default: m.AdminAttendanceDevices })));
@@ -36,6 +37,7 @@ const AdminTimesheet = lazyRoute('AdminTimesheet', () => import('@/pages/admin/A
 const AdminAttendanceReports = lazyRoute('AdminAttendanceReports', () => import('@/pages/admin/AdminAttendanceReports').then((m) => ({ default: m.AdminAttendanceReports })));
 const AdminPayroll = lazyRoute('AdminPayroll', () => import('@/pages/admin/AdminPayroll').then((m) => ({ default: m.AdminPayroll })));
 const AdminAssignments = lazyRoute('AdminAssignments', () => import('@/pages/admin/AdminAssignments').then((m) => ({ default: m.AdminAssignments })));
+const AdminWorklog = lazyRoute('AdminWorklog', () => import('@/pages/admin/AdminWorklog').then((m) => ({ default: m.AdminWorklog })));
 const AdminLeave = lazyRoute('AdminLeave', () => import('@/pages/admin/AdminLeave').then((m) => ({ default: m.AdminLeave })));
 const AdminSettings = lazyRoute('AdminSettings', () => import('@/pages/admin/AdminSettings').then((m) => ({ default: m.AdminSettings })));
 const AdminAttendanceSettings = lazyRoute('AdminAttendanceSettings', () => import('@/pages/admin/AdminAttendanceSettings').then((m) => ({ default: m.AdminAttendanceSettings })));
@@ -51,7 +53,9 @@ const ProfilePage = lazyRoute('ProfilePage', () => import('@/pages/ProfilePage')
 const StaffDashboard = lazyRoute('StaffDashboard', () => import('@/pages/staff/StaffDashboard').then((m) => ({ default: m.StaffDashboard })));
 const StaffAssignments = lazyRoute('StaffAssignments', () => import('@/pages/staff/StaffAssignments').then((m) => ({ default: m.StaffAssignments })));
 const StaffProjects = lazyRoute('StaffProjects', () => import('@/pages/staff/StaffProjects').then((m) => ({ default: m.StaffProjects })));
+const StaffKanban = lazyRoute('StaffKanban', () => import('@/pages/staff/StaffKanban').then((m) => ({ default: m.StaffKanban })));
 const StaffAttendance = lazyRoute('StaffDeviceAttendance', () => import('@/pages/staff/StaffDeviceAttendance').then((m) => ({ default: m.StaffDeviceAttendance })));
+const StaffWorklog = lazyRoute('StaffWorklog', () => import('@/pages/staff/StaffWorklog').then((m) => ({ default: m.StaffWorklog })));
 const StaffLeave = lazyRoute('StaffLeave', () => import('@/pages/staff/StaffLeave').then((m) => ({ default: m.StaffLeave })));
 const StaffReports = lazyRoute('StaffReports', () => import('@/pages/staff/StaffReports').then((m) => ({ default: m.StaffReports })));
 const StaffPayroll = lazyRoute('StaffPayroll', () => import('@/pages/staff/StaffPayroll').then((m) => ({ default: m.StaffPayroll })));
@@ -197,6 +201,7 @@ function AppRoutes() {
       <Route path="/admin/users" element={admin('users', <AdminUsers />)} />
       <Route path="/admin/organization"element={admin('users', <AdminOrganization />)} />
       <Route path="/admin/projects" element={admin('projects', <AdminProjects />)} />
+      <Route path="/admin/projects/:id" element={admin('projects', <AdminProjectDetail />)} />
       <Route path="/admin/reports" element={admin('reports', <AdminReports />)} />
       <Route path="/admin/assignments" element={admin('attendance', <AdminAssignments />)} />
       <Route path="/admin/attendance" element={admin('attendance', <AdminAttendance />)} />
@@ -240,6 +245,7 @@ function AppRoutes() {
       {/* Cờ GPS được quản lý ngay trong Địa điểm chấm công. Các cờ kỹ thuật
           cũ không còn là module người dùng độc lập. */}
       <Route path="/admin/feature-flags" element={<Navigate to="/admin/settings" replace />} />
+      <Route path="/admin/worklog" element={admin('reports', <AdminWorklog />)} />
       <Route path="/admin/settings" element={admin('settings', <AdminSettings />)} />
       {/* Nhật ký hệ thống — quyền module + chức năng nâng cao; RLS là hàng rào cuối. */}
       <Route path="/admin/audit" element={admin('settings', <AdminAudit />, { functionCode: 'admin.audit' })} />
@@ -251,8 +257,10 @@ function AppRoutes() {
       <Route path="/staff/dashboard" element={staff(<StaffDashboard />)} />
       <Route path="/staff/assignments" element={staff(<StaffAssignments />)} />
       <Route path="/staff/projects"element={staff(<StaffProjects />)} />
+      <Route path="/staff/kanban" element={staff(<StaffKanban />)} />
       <Route path="/staff/attendance" element={staff(<StaffAttendance />)} />
       <Route path="/staff/leave" element={staff(<StaffLeave />)} />
+      <Route path="/staff/worklog" element={staff(<StaffWorklog />)} />
       <Route path="/staff/reports" element={staff(<StaffReports />)} />
       <Route path="/staff/payroll" element={staff(<StaffPayroll />)} />
       <Route path="/staff/training" element={staff(<StaffTraining />)} />
