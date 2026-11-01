@@ -10,6 +10,7 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { IsolatedBoundary } from '@/components/PageErrorBoundary';
 import { CommandPalette } from '@/components/CommandPalette';
+import { ChatbotWidget } from '@/components/chatbot/ChatbotWidget';
 import { InstallPrompt } from '@/components/InstallPrompt';
 import { PhoneNotificationPrompt } from '@/components/PhoneNotificationPrompt';
 import { hasAdminFunction, hasAnyAdminPermission, hasPermission, type AdminFunctionCode, type AdminPermission } from '@/lib/permissions';
@@ -42,6 +43,7 @@ const AdminLeave = lazyRoute('AdminLeave', () => import('@/pages/admin/AdminLeav
 const AdminSettings = lazyRoute('AdminSettings', () => import('@/pages/admin/AdminSettings').then((m) => ({ default: m.AdminSettings })));
 const AdminAttendanceSettings = lazyRoute('AdminAttendanceSettings', () => import('@/pages/admin/AdminAttendanceSettings').then((m) => ({ default: m.AdminAttendanceSettings })));
 const AdminAudit = lazyRoute('AdminAudit', () => import('@/pages/admin/AdminAudit').then((m) => ({ default: m.AdminAudit })));
+const AdminChatbotLogs = lazyRoute('AdminChatbotLogs', () => import('@/pages/admin/AdminChatbotLogs').then((m) => ({ default: m.AdminChatbotLogs })));
 const AdminProcessLibrary = lazyRoute('AdminProcessLibrary', () => import('@/pages/admin/AdminProcessLibrary').then((m) => ({ default: m.AdminProcessLibrary })));
 const AdminTraining = lazyRoute('AdminTraining', () => import('@/pages/admin/AdminTraining').then((m) => ({ default: m.AdminTraining })));
 const AdminRecruitment = lazyRoute('AdminRecruitment', () => import('@/pages/admin/AdminRecruitment').then((m) => ({ default: m.AdminRecruitment })));
@@ -249,6 +251,7 @@ function AppRoutes() {
       <Route path="/admin/settings" element={admin('settings', <AdminSettings />)} />
       {/* Nhật ký hệ thống — quyền module + chức năng nâng cao; RLS là hàng rào cuối. */}
       <Route path="/admin/audit" element={admin('settings', <AdminAudit />, { functionCode: 'admin.audit' })} />
+      <Route path="/admin/chatbot-logs" element={admin('settings', <AdminChatbotLogs />)} />
 
       {/* Hồ sơ cá nhân — ai đăng nhập cũng có, layout theo vai trò */}
       <Route path="/profile" element={<ProtectedRoute><OwnLayout><ProfilePage /></OwnLayout></ProtectedRoute>} />
@@ -294,6 +297,8 @@ export default function App() {
                   </Suspense>
                   {/* Ctrl/⌘+K — tự ẩn khi chưa đăng nhập. */}
                   <IsolatedBoundary><CommandPalette /></IsolatedBoundary>
+                  {/* Trợ lý hỏi đáp — tự ẩn khi chưa đăng nhập. */}
+                  <IsolatedBoundary><ChatbotWidget /></IsolatedBoundary>
                   {/* Dải mời cài app — chỉ hiện khi trình duyệt thực sự cài được. */}
                   <IsolatedBoundary><InstallPrompt /></IsolatedBoundary>
                   {/* Xin quyền bằng thao tác rõ ràng của người dùng; trình duyệt
