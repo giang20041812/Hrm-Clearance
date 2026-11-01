@@ -74,6 +74,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
 
   { to: '/admin/settings', label: 'Cấu hình hệ thống', description: 'Thiết lập vận hành dùng chung toàn tổ chức', icon: Settings, permission: 'settings', group: 'Hệ thống', keywords: 'cau hinh thiet lap' },
   { to: '/admin/audit', label: 'Nhật ký hệ thống', description: 'Truy vết thay đổi dữ liệu và thao tác quản trị', icon: ClipboardCheck, permission: 'settings', group: 'Hệ thống', keywords: 'audit log lich su truy vet', functionCode: 'admin.audit' },
+  { to: '/admin/chatbot-logs', label: 'Trợ lý hỏi đáp', description: 'Câu hỏi người dùng gửi trợ lý và văn bản quy chế cho trợ lý tra cứu', icon: MessageCircleQuestion, permission: 'settings', group: 'Hệ thống', keywords: 'chatbot tro ly ai hoi dap cau hoi gemini quy che noi quy kien thuc' },
 ];
 
 export interface StaffNavItem {
