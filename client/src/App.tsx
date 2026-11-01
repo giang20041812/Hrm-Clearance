@@ -10,6 +10,7 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { IsolatedBoundary } from '@/components/PageErrorBoundary';
 import { CommandPalette } from '@/components/CommandPalette';
+import { ChatbotWidget } from '@/components/chatbot/ChatbotWidget';
 import { InstallPrompt } from '@/components/InstallPrompt';
 import { PhoneNotificationPrompt } from '@/components/PhoneNotificationPrompt';
 import { hasAdminFunction, hasAnyAdminPermission, hasPermission, type AdminFunctionCode, type AdminPermission } from '@/lib/permissions';
@@ -294,6 +295,8 @@ export default function App() {
                   </Suspense>
                   {/* Ctrl/⌘+K — tự ẩn khi chưa đăng nhập. */}
                   <IsolatedBoundary><CommandPalette /></IsolatedBoundary>
+                  {/* Trợ lý hỏi đáp — tự ẩn khi chưa đăng nhập. */}
+                  <IsolatedBoundary><ChatbotWidget /></IsolatedBoundary>
                   {/* Dải mời cài app — chỉ hiện khi trình duyệt thực sự cài được. */}
                   <IsolatedBoundary><InstallPrompt /></IsolatedBoundary>
                   {/* Xin quyền bằng thao tác rõ ràng của người dùng; trình duyệt
