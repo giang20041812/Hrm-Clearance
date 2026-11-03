@@ -38,6 +38,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   { to: '/admin/organization', label: 'Cơ cấu tổ chức', description: 'Đơn vị, vị trí và tuyến quản lý', icon: Network, permission: 'users', group: 'Nhân sự', keywords: 'co cau don vi phong ban chi nhanh vi tri tuyen quan ly' },
   { to: '/admin/users', label: 'Hồ sơ nhân sự', description: 'Thông tin cá nhân, tình trạng làm việc và giấy tờ nhân viên', icon: Users, permission: 'users', group: 'Nhân sự', keywords: 'ho so nhan su danh ba nhan vien tai khoan' },
 
+  { to: '/admin/onboarding', label: 'Khai báo hồ sơ qua link', description: 'Đường dẫn cho nhân viên mới tự khai báo, duyệt và cấp tài khoản', icon: Link2, permission: 'users', group: 'Nhân sự', keywords: 'khai bao ho so link form nhan vien moi cap tai khoan duyet' },
   { to: '/admin/recruitment', label: 'Tuyển dụng nội bộ', description: 'Đề xuất, HR kiểm tra, BGĐ phê duyệt và thêm nhân sự vào dự án', icon: UserSearch, permission: 'users', anyPermissions: ['users', 'projects'], group: 'Tuyển dụng', keywords: 'de xuat tuyen bgd phe duyet ung vien phong van ket qua noi bo' },
   { to: '/admin/worker-documents', label: 'Kho hồ sơ giấy tờ', description: 'Tra cứu hồ sơ và giấy tờ nhân viên', icon: FileWarning, permission: 'users', group: 'Tổ chức & Nhân sự', keywords: 'ho so nhan vien hop dong visa tai lieu giay to', functionCode: 'admin.worker_documents', teamleadEmployeeDocuments: true },
 

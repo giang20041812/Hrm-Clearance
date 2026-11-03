@@ -44,6 +44,8 @@ const AdminSettings = lazyRoute('AdminSettings', () => import('@/pages/admin/Adm
 const AdminAttendanceSettings = lazyRoute('AdminAttendanceSettings', () => import('@/pages/admin/AdminAttendanceSettings').then((m) => ({ default: m.AdminAttendanceSettings })));
 const AdminAudit = lazyRoute('AdminAudit', () => import('@/pages/admin/AdminAudit').then((m) => ({ default: m.AdminAudit })));
 const AdminChatbotLogs = lazyRoute('AdminChatbotLogs', () => import('@/pages/admin/AdminChatbotLogs').then((m) => ({ default: m.AdminChatbotLogs })));
+const PublicOnboardingPage = lazyRoute('PublicOnboardingPage', () => import('@/pages/public/PublicOnboardingPage').then((m) => ({ default: m.PublicOnboardingPage })));
+const AdminOnboarding = lazyRoute('AdminOnboarding', () => import('@/pages/admin/AdminOnboarding').then((m) => ({ default: m.AdminOnboarding })));
 const AdminProcessLibrary = lazyRoute('AdminProcessLibrary', () => import('@/pages/admin/AdminProcessLibrary').then((m) => ({ default: m.AdminProcessLibrary })));
 const AdminTraining = lazyRoute('AdminTraining', () => import('@/pages/admin/AdminTraining').then((m) => ({ default: m.AdminTraining })));
 const AdminRecruitment = lazyRoute('AdminRecruitment', () => import('@/pages/admin/AdminRecruitment').then((m) => ({ default: m.AdminRecruitment })));
@@ -185,6 +187,9 @@ function RedirectKeepQuery({ to }: { to: string }) {
 function AppRoutes() {
   return (
     <Routes>
+      {/* Công khai, không cần đăng nhập — RC2.5. Đặt trước mọi route có
+          bảo vệ để không bị chuyển hướng về màn đăng nhập. */}
+      <Route path="/khai-bao/:code" element={<PublicOnboardingPage />} />
 
       <Route path="/" element={<AuthRedirect />} />
       <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
@@ -201,6 +206,7 @@ function AppRoutes() {
           bookmark của người dùng không chết. */}
       <Route path="/admin/dashboard" element={<Navigate to="/admin" replace />} />
       <Route path="/admin/users" element={admin('users', <AdminUsers />)} />
+      <Route path="/admin/onboarding" element={admin('users', <AdminOnboarding />)} />
       <Route path="/admin/organization"element={admin('users', <AdminOrganization />)} />
       <Route path="/admin/projects" element={admin('projects', <AdminProjects />)} />
       <Route path="/admin/projects/:id" element={admin('projects', <AdminProjectDetail />)} />
