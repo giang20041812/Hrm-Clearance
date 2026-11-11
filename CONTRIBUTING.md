@@ -4,8 +4,8 @@
 
 | Nhánh | Vai trò | Ai được ghi vào |
 |-------|---------|-----------------|
-| `main` | Chỉ chứa bản **đã phát hành** (production). Mỗi lần cập nhật đều có tag `vX.Y.Z`. | Chỉ merge từ `release/*` hoặc `hotfix/*` |
-| `develop` | Nhánh **tích hợp**; mọi tính năng hoàn tất được gom về đây trước khi phát hành. | Chỉ merge từ `feature/*`, `fix/*`, `chore/*`, `docs/*`, `refactor/*` |
+| `main` | Chỉ chứa bản **đã phát hành** (production). Mỗi lần cập nhật đều có tag `vX.Y.Z`. | Chỉ nhận Pull Request từ `develop` (kiểm tra bắt buộc `only-develop-to-main`) |
+| `develop` | Nhánh **tích hợp**; mọi tính năng hoàn tất được gom về đây trước khi phát hành. | Chỉ merge từ `feature/*`, `fix/*`, `style/*`, `ci/*`, `chore/*`, `docs/*`, `refactor/*` |
 
 Không commit trực tiếp lên `main` hoặc `develop` (trừ commit khởi tạo repo).
 
@@ -20,10 +20,11 @@ Tên nhánh: `<loại>/<mô-tả-ngắn-bằng-chữ-thường-gạch-ngang>`.
 | `refactor/` | `develop` | `develop` | Tái cấu trúc, không đổi hành vi |
 | `chore/` | `develop` | `develop` | Cấu hình, build, hạ tầng, phụ thuộc |
 | `docs/` | `develop` | `develop` | Chỉ sửa tài liệu |
-| `release/x.y.z` | `develop` | `main` rồi `develop` | Chốt bản phát hành (đổi version, changelog, sửa lỗi cuối) |
-| `hotfix/x.y.z` | `main` | `main` rồi `develop` | Sửa gấp lỗi đang chạy trên production |
+| `style/` | `develop` | `develop` | Chỉ chỉnh giao diện, không đổi logic |
+| `ci/` | `develop` | `develop` | Quy trình CI và công cụ kiểm tra |
 
-Ví dụ đúng: `feature/payroll-formulas`, `fix/attendance-duplicate-checkin`, `release/1.0.0`.
+Ví dụ đúng: `feature/29-payroll-formulas`, `fix/28-device-punch-rules`, `ci/43-only-develop-to-main`.
+Có thể thêm số thứ tự hai chữ số sau tiền tố để giữ đúng trình tự thời gian.
 
 Đặt tên theo **chức năng thực tế**. Không dùng mã/thuật ngữ trong tài liệu đặc tả
 (mã phân hệ, mã yêu cầu, mã nghiệp vụ, tên viết tắt của tài liệu...) để đặt tên nhánh,
@@ -32,14 +33,13 @@ commit hay tag.
 ### Luồng
 
 ```
-feature/* ──► develop ──► release/x.y.z ──► main (tag vX.Y.Z)
-                 ▲                              │
-                 └────────── merge ngược ◄──────┘
-hotfix/x.y.z ──► main (tag) ──► develop
+feature/* | fix/* | style/* | ci/* | chore/* | docs/* ──► develop ──► Pull Request ──► main (tag vX.Y.Z)
 ```
 
 - Merge nhánh vào `develop`/`main` bằng `git merge --no-ff` (hoặc Pull Request) để giữ lịch sử nhánh.
 - Xóa nhánh làm việc sau khi merge xong trên remote nếu không cần giữ.
+- Lỗi gấp trên production: sửa ở nhánh `fix/*` cắt từ `develop`, merge vào `develop`, rồi mở Pull Request `develop` → `main`.
+- `main` và `develop` được bảo vệ: không xóa, không force-push, chỉ thay đổi qua Pull Request.
 
 ## 2. Commit — Conventional Commits
 

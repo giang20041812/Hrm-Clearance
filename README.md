@@ -9,9 +9,9 @@ dự án/công việc, tuyển dụng, đào tạo và trợ lý hỏi đáp.
 
 ## Quy ước làm việc
 
-- `main`: chỉ chứa bản đã phát hành, có tag `vX.Y.Z`.
+- `main`: nhánh triển khai, chỉ nhận Pull Request từ `develop`; mỗi bản phát hành có tag `vX.Y.Z`.
 - `develop`: nhánh tích hợp, mọi tính năng merge vào đây trước.
-- Nhánh làm việc `feature/*`, `fix/*`, `chore/*`, `docs/*`, `refactor/*`, `release/*`, `hotfix/*`.
+- Nhánh làm việc `feature/*`, `fix/*`, `style/*`, `ci/*`, `chore/*`, `docs/*`, `refactor/*`, cắt từ `develop` và merge lại vào `develop`.
 - Commit theo Conventional Commits.
 
 Chi tiết và cách cài hook: [CONTRIBUTING.md](CONTRIBUTING.md).
