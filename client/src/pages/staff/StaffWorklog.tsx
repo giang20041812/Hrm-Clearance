@@ -1,0 +1,435 @@
+import { useEffect, useState } from 'react';
+import { describeDbError, describeDbErrorOrNull } from '@/lib/dbError';
+import { ChevronLeft, ChevronRight, CalendarDays, NotebookPen, Save, TriangleAlert, CheckCircle2, Send } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { ErrorState } from '@/components/ui/ErrorState';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { useToast } from '@/contexts/ToastContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useRealtimeSync } from '@/hooks/useRealtimeSync';
+import { supabase } from '@/lib/supabase';
+import {
+  addDays, startOfWeek, UNLOGGED_TOLERANCE_HOURS, attendanceHours, fetchDayEntries, fetchProjectLeadIds, formatHours, saveDayEntries, type WorklogEntry,
+} from '@/lib/worklog';
+import { getTodayString, toDateString } from '@/lib/utils';
+import { notifyUsers } from '@/lib/assignments';
+import { WorklogApprovalQueue } from '@/pages/admin/AdminWorklog';
+import type { Attendance } from '@/types';
+
+interface WorklogSubmission {
+  id: string;
+  project_id: string;
+  status: 'SUBMITTED' | 'APPROVED' | 'RETURNED';
+  review_note: string | null;
+}
+
+interface WorklogWeekTask {
+  task_id: string;
+  task: Array<{
+    project_id: string;
+    project: Array<{ name: string; lead_id: string | null }> | { name: string; lead_id: string | null } | null;
+  }> | {
+    project_id: string;
+    project: Array<{ name: string; lead_id: string | null }> | { name: string; lead_id: string | null } | null;
+  } | null;
+}
+
+export function StaffWorklog() {
+  const { profile } = useAuth();
+  const { toast } = useToast();
+
+  const [date, setDate] = useState(() => getTodayString());
+  const [entries, setEntries] = useState<WorklogEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [dirty, setDirty] = useState(false);
+  const [attendanceShifts, setAttendanceShifts] = useState<Attendance[]>([]);
+  const [weekSubmissions, setWeekSubmissions] = useState<WorklogSubmission[]>([]);
+  const [weekProjectDetails, setWeekProjectDetails] = useState<Map<string, { name: string; leadId: string | null }>>(new Map());
+  const [weekLogProjectIds, setWeekLogProjectIds] = useState<string[]>([]);
+  const [submittingWeek, setSubmittingWeek] = useState(false);
+  /** Có dẫn dắt dự án nào không: chỉ trưởng dự án thấy khung duyệt worklog. */
+  const [leadsAnyProject, setLeadsAnyProject] = useState(false);
+  const weekStart = toDateString(startOfWeek(new Date(`${date}T00:00:00`)));
+  const weekEnd = toDateString(addDays(new Date(`${weekStart}T00:00:00`), 6));
+  const weekEnded = weekEnd < getTodayString();
+  const submissionByProject = new Map(weekSubmissions.map((submission) => [submission.project_id, submission]));
+  const lockedProjectIds = new Set(weekSubmissions
+    .filter((submission) => submission.status === 'SUBMITTED' || submission.status === 'APPROVED')
+    .map((submission) => submission.project_id));
+
+  useEffect(() => {
+    if (!profile) return;
+    void (async () => {
+      const [{ count: leadCount }, { count: memberLeadCount }] = await Promise.all([
+        supabase.from('projects').select('id', { count: 'exact', head: true }).eq('lead_id', profile.id),
+        supabase.from('project_members').select('id', { count: 'exact', head: true }).eq('user_id', profile.id).eq('role_code', 'lead'),
+      ]);
+      setLeadsAnyProject((leadCount ?? 0) + (memberLeadCount ?? 0) > 0);
+    })();
+  }, [profile]);
+
+  useEffect(() => {
+    if (profile) load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile, date]);
+
+  // KHÔNG nạp lại khi đang có sửa đổi chưa lưu: hàm load() gọi setDirty(false)
+  // và ghi đè toàn bộ ô nhập, người dùng sẽ mất số giờ vừa gõ dở mà không hiểu
+  // vì sao. Đợi họ lưu hoặc đổi ngày rồi mới đồng bộ lại.
+  useRealtimeSync(
+    profile
+      ? [
+          { table: 'task_worklogs', filter: `user_id=eq.${profile.id}` },
+          { table: 'attendance', filter: `user_id=eq.${profile.id}` },
+          { table: 'worklog_submissions', filter: `user_id=eq.${profile.id}` },
+        ]
+      : [],
+    () => { if (!dirty) load(true); },
+    { enabled: !!profile },
+  );
+
+  const load = async (silent = false) => {
+    if (!profile) return;
+    if (!silent) setLoading(true);
+    setDirty(false);
+
+    const [entryResult, attResult, submissionResult, logsResult] = await Promise.all([
+      fetchDayEntries(profile.id, date),
+      // KHONG dung `maybeSingle()`: no nem loi khi co nhieu hon mot dong.
+      //
+      // Mot ngay lam hai ca (sang, toi) la chuyen binh thuong va he thong cho
+      // phep - chi cam hai dong cung DANG MO (chi muc
+      // attendance_one_open_per_user_day). Dung maybeSingle thi dung nguoi
+      // lam hai ca se thay trang nhat ky gio bao loi, khong vao duoc.
+      supabase.from('attendance').select('*').eq('user_id', profile.id).eq('date', date)
+        .order('check_in_time', { ascending: true }),
+      supabase.from('worklog_submissions').select('id,project_id,status,review_note')
+        .eq('user_id', profile.id).eq('week_start', weekStart),
+      supabase.from('task_worklogs').select('task_id,task:tasks(project_id,project:projects(name,lead_id))')
+        .eq('user_id', profile.id).gte('work_date', weekStart).lte('work_date', weekEnd),
+    ]);
+
+    const weekTaskRows = (logsResult.data || []) as WorklogWeekTask[];
+    const projectDetails = new Map<string, { name: string; leadId: string | null }>();
+    for (const row of weekTaskRows) {
+      const task = Array.isArray(row.task) ? row.task[0] : row.task;
+      const project = task ? (Array.isArray(task.project) ? task.project[0] : task.project) : null;
+      if (task?.project_id) {
+        projectDetails.set(task.project_id, {
+          name: project?.name ?? 'Dự án',
+          leadId: project?.lead_id ?? null,
+        });
+      }
+    }
+    setLoadError(
+      entryResult.error
+        ?? describeDbErrorOrNull(attResult.error)
+        ?? describeDbErrorOrNull(submissionResult.error)
+        ?? describeDbErrorOrNull(logsResult.error)
+        ?? null,
+    );
+    setEntries(entryResult.entries);
+    // Giữ mọi ca trong ngày: người làm hai ca phải được cộng đủ giờ có mặt.
+    setAttendanceShifts((attResult.data ?? []) as Attendance[]);
+    setWeekSubmissions((submissionResult.data || []) as WorklogSubmission[]);
+    setWeekProjectDetails(projectDetails);
+    setWeekLogProjectIds([...projectDetails.keys()]);
+    setLoading(false);
+  };
+
+  const setHours = (taskId: string, raw: string) => {
+    const value = raw === '' ? 0 : Math.max(0, Math.min(24, Number(raw)));
+    if (Number.isNaN(value)) return;
+    setEntries((prev) => prev.map((e) => (e.task.id === taskId ? { ...e, hours: value } : e)));
+    setDirty(true);
+  };
+
+  const setNote = (taskId: string, note: string) => {
+    setEntries((prev) => prev.map((e) => (e.task.id === taskId ? { ...e, note } : e)));
+    setDirty(true);
+  };
+
+  const handleSave = async () => {
+    if (!profile) return;
+    // Dự án đã gửi/đã duyệt tuần này bị khóa (DB cũng chặn); vẫn lưu được giờ
+    // của các dự án khác trong cùng ngày.
+    const editable = entries.filter((entry) => !lockedProjectIds.has(entry.task.project_id));
+    if (editable.length === 0) {
+      toast('Worklog tuần này đã gửi duyệt hoặc được duyệt, không thể sửa.', 'warning');
+      return;
+    }
+    setSaving(true);
+    const { error } = await saveDayEntries(profile.id, date, editable);
+    setSaving(false);
+
+    if (error) {
+      toast(error, 'error');
+      return;
+    }
+    toast('Đã lưu nhật ký.', 'success');
+    load();
+  };
+
+  const handleSubmitWeek = async () => {
+    if (dirty) {
+      toast('Lưu thay đổi trong ngày trước khi gửi worklog tuần.', 'warning');
+      return;
+    }
+    if (!weekEnded) {
+      toast('Chỉ gửi worklog sau khi tuần đã kết thúc.', 'warning');
+      return;
+    }
+    setSubmittingWeek(true);
+    const { data, error } = await supabase.rpc('submit_project_worklog_week', {
+      target_week_start: weekStart,
+      submission_note: null,
+    });
+    setSubmittingWeek(false);
+    if (error) {
+      toast(`Gửi worklog thất bại: ${describeDbError(error)}`, 'error');
+      return;
+    }
+
+    // Báo mọi trưởng dự án (lead_id + thành viên vai trò lead), trừ chính người gửi.
+    const leadMap = await fetchProjectLeadIds(weekLogProjectIds);
+    for (const projectId of weekLogProjectIds) {
+      const reviewers = (leadMap.get(projectId) ?? []).filter((id) => id !== profile?.id);
+      if (reviewers.length > 0) {
+        await notifyUsers(reviewers, 'Worklog tuần chờ duyệt', `${weekProjectDetails.get(projectId)?.name ?? 'Dự án'} · tuần từ ${weekStart}`, 'worklog_review');
+      }
+    }
+    toast(`Đã gửi worklog của ${data ?? 0} dự án cho Project lead.`, 'success');
+    await load(true);
+  };
+
+  const totalLogged = entries.reduce((sum, e) => sum + e.hours, 0);
+  const closedShiftHours = attendanceShifts.map((shift) => attendanceHours(shift)).filter((hours): hours is number => hours !== null);
+  const openShiftCount = attendanceShifts.length - closedShiftHours.length;
+  const presentHours = closedShiftHours.length > 0
+    ? Math.round(closedShiftHours.reduce((sum, hours) => sum + hours, 0) * 10) / 10
+    : null;
+  const allLocked = entries.length > 0 && entries.every((entry) => lockedProjectIds.has(entry.task.project_id));
+  const gap = presentHours !== null ? Math.round((presentHours - totalLogged) * 10) / 10 : null;
+
+  const shiftDate = (days: number) => setDate(toDateString(addDays(new Date(`${date}T00:00:00`), days)));
+  const isToday = date === getTodayString();
+
+  return (
+    <div className="space-y-4">
+      {/* Chọn ngày */}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-1">
+          <button onClick={() => shiftDate(-1)} className="p-2 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors" aria-label="Ngày trước">
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <button onClick={() => shiftDate(1)} disabled={date >= getTodayString()} className="p-2 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors disabled:cursor-not-allowed disabled:opacity-40" aria-label="Ngày sau">
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+
+        <input
+          type="date"
+          value={date}
+          onChange={(e) => { if (e.target.value) setDate(e.target.value > getTodayString() ? getTodayString() : e.target.value); }}
+          max={getTodayString()}
+          className="h-10 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+        />
+
+        <p className="text-sm text-slate-500">
+          {new Date(`${date}T00:00:00`).toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit' })}
+        </p>
+
+        {!isToday && (
+          <Button variant="outline" size="sm" onClick={() => setDate(getTodayString())}>
+            <CalendarDays className="w-4 h-4" />
+            Hôm nay
+          </Button>
+        )}
+      </div>
+
+      {!loading && !loadError && (
+        <Card>
+          <CardContent className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-slate-800">Worklog tuần {weekStart} – {weekEnd}</p>
+              <p className="mt-1 text-xs text-slate-500">
+                Gửi theo dự án sau khi tuần kết thúc. Đã ghi nhận {weekLogProjectIds.length} dự án.
+                {dirty ? ' Lưu thay đổi trước khi gửi.' : ''}
+              </p>
+              {weekSubmissions.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {weekSubmissions.map((submission) => (
+                    <Badge
+                      key={submission.id}
+                      className={submission.status === 'APPROVED'
+                        ? 'bg-emerald-50 text-emerald-700'
+                        : submission.status === 'RETURNED'
+                          ? 'bg-rose-50 text-rose-700'
+                          : 'bg-amber-50 text-amber-700'}
+                    >
+                      {weekProjectDetails.get(submission.project_id)?.name ?? 'Dự án'}: {
+                        submission.status === 'APPROVED' ? 'Đã duyệt' : submission.status === 'RETURNED' ? 'Cần chỉnh sửa' : 'Chờ duyệt'
+                      }
+                    </Badge>
+                  ))}
+                </div>
+              )}
+              {weekSubmissions.some((submission) => submission.status === 'RETURNED' && submission.review_note) && (
+                <p className="mt-2 text-xs text-rose-700">
+                  Phản hồi: {weekSubmissions.filter((submission) => submission.status === 'RETURNED' && submission.review_note)
+                    .map((submission) => `${weekProjectDetails.get(submission.project_id)?.name ?? 'Dự án'}: ${submission.review_note}`)
+                    .join(' · ')}
+                </p>
+              )}
+            </div>
+            <Button
+              onClick={() => void handleSubmitWeek()}
+              disabled={!weekEnded || weekLogProjectIds.length === 0 || submittingWeek
+                || dirty
+                || weekLogProjectIds.every((projectId) => {
+                  const status = submissionByProject.get(projectId)?.status;
+                  return status === 'SUBMITTED' || status === 'APPROVED';
+                })}
+            >
+              <Send className="h-4 w-4" />
+              {submittingWeek ? 'Đang gửi…' : 'Gửi worklog tuần'}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      <Card>
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="p-5 space-y-2">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-14" />)}</div>
+          ) : loadError ? (
+            <ErrorState message={loadError} onRetry={load} />
+          ) : entries.length === 0 ? (
+            <EmptyState
+              icon={<NotebookPen className="w-8 h-8" />}
+              title="Không có tác vụ nào để ghi giờ"
+              description="Bạn chưa được giao tác vụ nào đang mở. Khi có, chúng sẽ hiện tại đây."
+            />
+          ) : (
+            <div className="divide-y divide-slate-50">
+              {entries.map((entry) => (
+                <div key={entry.task.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-800 truncate">{entry.task.title}</p>
+                    <p className="text-xs text-slate-400 truncate">
+                      {entry.task.project?.name ?? '—'}
+                      {entry.task.estimated_hours ? ` · ước lượng ${formatHours(Number(entry.task.estimated_hours))}` : ''}
+                    </p>
+                  </div>
+                  {submissionByProject.get(entry.task.project_id) && (
+                    <Badge className={submissionByProject.get(entry.task.project_id)?.status === 'APPROVED'
+                      ? 'bg-emerald-50 text-emerald-700'
+                      : submissionByProject.get(entry.task.project_id)?.status === 'RETURNED'
+                        ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700'}>
+                      {submissionByProject.get(entry.task.project_id)?.status === 'APPROVED'
+                        ? 'Đã duyệt' : submissionByProject.get(entry.task.project_id)?.status === 'RETURNED' ? 'Cần sửa' : 'Chờ duyệt'}
+                    </Badge>
+                  )}
+
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={entry.hours === 0 ? '' : entry.hours}
+                    onChange={(e) => setHours(entry.task.id, e.target.value.replace(',', '.'))}
+                    disabled={lockedProjectIds.has(entry.task.project_id)}
+                    placeholder="0"
+                    aria-label={`Số giờ cho ${entry.task.title}`}
+                    className="w-20 h-10 px-3 text-center rounded-xl border border-slate-200 text-sm font-semibold text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                  />
+                  <span className="text-sm text-slate-400 -ml-1.5">giờ</span>
+
+                  <input
+                    type="text"
+                    value={entry.note}
+                    onChange={(e) => setNote(entry.task.id, e.target.value)}
+                    disabled={lockedProjectIds.has(entry.task.project_id)}
+                    placeholder="Ghi chú (không bắt buộc)"
+                    aria-label={`Ghi chú cho ${entry.task.title}`}
+                    className="w-full sm:w-56 h-10 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Tổng kết + đối chiếu chấm công */}
+      {!loading && !loadError && entries.length > 0 && (
+        <Card>
+          <CardContent>
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <p className="text-sm text-slate-500">Tổng đã ghi</p>
+                <p className="font-display text-3xl font-extrabold text-slate-800">{formatHours(totalLogged)}</p>
+              </div>
+
+              <div className="text-sm">
+                {presentHours === null ? (
+                  <p className="text-slate-400">
+                    {attendanceShifts.length > 0 ? 'Chưa check-out nên chưa tính được giờ có mặt.' : 'Không có dữ liệu chấm công ngày này.'}
+                  </p>
+                ) : gap !== null && gap > UNLOGGED_TOLERANCE_HOURS ? (
+                  <p className="flex items-start gap-2 text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-2.5">
+                    <TriangleAlert className="w-4.5 h-4.5 flex-shrink-0 mt-0.5" />
+                    <span>
+                      Chấm công ghi nhận <strong>{formatHours(presentHours)}</strong> có mặt, nhật ký mới khai{' '}
+                      <strong>{formatHours(totalLogged)}</strong> — còn <strong>{formatHours(gap)}</strong> chưa rõ.
+                    </span>
+                  </p>
+                ) : gap !== null && gap < -UNLOGGED_TOLERANCE_HOURS ? (
+                  <p className="flex items-start gap-2 text-blue-700 bg-blue-50 border border-blue-200 rounded-xl px-3.5 py-2.5">
+                    <TriangleAlert className="w-4.5 h-4.5 flex-shrink-0 mt-0.5" />
+                    <span>
+                      Khai <strong>{formatHours(Math.abs(gap))}</strong> nhiều hơn giờ có mặt ({formatHours(presentHours)}).
+                      Có thể bạn làm thêm ngoài giờ chấm công.
+                    </span>
+                  </p>
+                ) : (
+                  <p className="flex items-center gap-2 text-emerald-700">
+                    <CheckCircle2 className="w-4.5 h-4.5" />
+                    Khớp với chấm công ({formatHours(presentHours)} có mặt).
+                  </p>
+                )}
+                {presentHours !== null && (closedShiftHours.length > 1 || openShiftCount > 0) && (
+                  <p className="mt-1 text-xs text-slate-500">
+                    {closedShiftHours.length > 1 ? `Cộng ${closedShiftHours.length} ca đã check-out.` : ''}
+                    {openShiftCount > 0 ? ` Còn ${openShiftCount} ca chưa check-out, chưa tính.` : ''}
+                  </p>
+                )}
+              </div>
+
+              <Button
+                onClick={handleSave}
+                disabled={saving || !dirty || allLocked}
+                className="w-full sm:w-auto"
+              >
+                <Save className="w-4 h-4" />
+                {saving ? 'Đang lưu...' : dirty ? 'Lưu nhật ký' : 'Đã lưu'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {leadsAnyProject && <WorklogApprovalQueue />}
+
+      {!loading && entries.some((e) => e.task.status === 'done') && (
+        <p className="text-xs text-slate-400">
+          Tác vụ đã hoàn thành vẫn hiện nếu bạn từng ghi giờ cho nó ngày này —{' '}
+          <Badge className="bg-slate-100 text-slate-600">không nuốt mất dữ liệu đã nhập</Badge>
+        </p>
+      )}
+    </div>
+  );
+}
