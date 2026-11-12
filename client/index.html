@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#bf1f2b" />
+    <meta name="description" content="HRM Huy Phong — quản trị nhân sự và vận hành xuất khẩu rượu vang." />
+
+    <!-- PWA: cài lên màn hình chính như một ứng dụng -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icon-192.png?v=3" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="HRM Huy Phong" />
+    <!-- Favicon: dấu hiệu Huy Phong, trùng bộ icon PWA -->
+    <link rel="icon" type="image/png" href="/logo-mark.png?v=3" />
+    <title>HRM Huy Phong</title>
+
+    <!--
+      Mở kết nối tới Google Fonts ngay từ đầu. Trước đây font được nạp bằng
+      @import trong index.css — trình duyệt chỉ biết tới nó SAU khi tải và phân
+      tích xong CSS, nên chữ hiện muộn hơn hẳn. Preconnect + preload rút ngắn
+      chuỗi phụ thuộc đó.
+    -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+    />
+
+    <meta property="og:title" content="HRM Huy Phong" />
+    <meta property="og:description" content="Quản lý dự án, giao việc, chấm công, bảng công và tính lương." />
+
+    <!--
+      Đặt class `dark` TRƯỚC khi React mount — nếu để ThemeProvider làm việc
+      này trong useEffect thì có một khung hình trắng chớp qua trước khi
+      chuyển sang tối, rất khó chịu với người đã chọn dark mode.
+    -->
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem('hrm:theme');
+          var dark = saved === 'dark' || (saved !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.classList.toggle('dark', dark);
+          document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

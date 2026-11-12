@@ -1,0 +1,24 @@
+# Chỉ cho phép pull request vào main xuất phát từ develop.
+# Dùng làm kiểm tra bắt buộc (required status check) trong ruleset của main.
+name: only-develop-to-main
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions: {}
+
+jobs:
+  only-develop-to-main:
+    name: only-develop-to-main
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kiểm tra nhánh nguồn
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          if [ "$HEAD_REF" != "develop" ]; then
+            echo "::error::Chỉ được merge vào main từ develop (nhánh nguồn hiện tại: $HEAD_REF)."
+            exit 1
+          fi
+          echo "Nhánh nguồn hợp lệ: develop"

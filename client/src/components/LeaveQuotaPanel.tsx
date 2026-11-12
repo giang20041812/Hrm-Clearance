@@ -1,0 +1,288 @@
+// ============================================================================
+// Hạn mức phép năm từng người.
+// ----------------------------------------------------------------------------
+// Trước đây `profiles.annual_leave_quota` chỉ có DEFAULT 12 và KHÔNG giao diện
+// nào sửa được, dù mô tả quyền `leave` có ghi "đặt hạn mức phép năm". Mọi công
+// ty cho khác 12 ngày đều phải vào thẳng database.
+//
+// Ghi qua RPC `set_annual_leave_quota` chứ không UPDATE thẳng `profiles`: policy
+// UPDATE của bảng đó đòi quyền `users`, mà mở rộng nó cho quyền `leave` là mở cả
+// cột `role`/`permissions`. Xem migration 20260811150000.
+// ============================================================================
+
+import { useEffect, useMemo, useState } from 'react';
+import { Loader2, RotateCcw } from 'lucide-react';
+import { Dropdown } from '@/components/ui/Dropdown';
+import { departmentOptions, passesPeopleFilter, personOptions } from '@/lib/peopleFilter';
+import { Card, CardContent } from '@/components/ui/Card';
+import { Avatar } from '@/components/ui/Avatar';
+import { Button } from '@/components/ui/Button';
+import { ITEMS_PER_PAGE, Pager, clampPage } from '@/components/payroll/Pager';
+import { ErrorState } from '@/components/ui/ErrorState';
+import { TableSkeleton } from '@/components/ui/Skeleton';
+import { useToast } from '@/contexts/ToastContext';
+import { useConfirm } from '@/contexts/ConfirmContext';
+import { useAppSettings } from '@/contexts/SettingsContext';
+import { useRealtimeSync } from '@/hooks/useRealtimeSync';
+import { supabase } from '@/lib/supabase';
+import { describeDbError } from '@/lib/dbError';
+import { calculateLedgerBalance } from '@/lib/leave';
+import type { LeaveLedgerEntry, LeaveRequest, Profile } from '@/types';
+
+export function LeaveQuotaPanel() {
+  const { toast } = useToast();
+  const confirm = useConfirm();
+  const { defaultAnnualLeave } = useAppSettings();
+
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [requests, setRequests] = useState<LeaveRequest[]>([]);
+  const [ledger, setLedger] = useState<LeaveLedgerEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [deptFilter, setDeptFilter] = useState('');
+  const [personFilter, setPersonFilter] = useState('');
+  const [page, setPage] = useState(1);
+  /** Id người đang lưu — khóa riêng dòng đó, không khóa cả bảng. */
+  const [savingId, setSavingId] = useState<string | null>(null);
+  /** Giá trị đang gõ theo từng người, chưa ghi xuống database. */
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
+
+  const year = new Date().getFullYear();
+
+  const load = async (silent = false) => {
+    if (!silent) setLoading(true);
+
+    const [profileRes, leaveRes, ledgerRes] = await Promise.all([
+      supabase
+        .from('profiles_leave_quota')
+        .select('*')
+        .eq('is_active', true)
+        .order('name'),
+      // Chỉ cần phép năm đã duyệt/chờ duyệt trong năm nay để tính số dư.
+      supabase
+        .from('leave_requests')
+        .select('*')
+        .eq('leave_type', 'annual')
+        .gte('start_date', `${year}-01-01`)
+        .lte('start_date', `${year}-12-31`),
+      supabase.from('leave_ledger').select('*').eq('leave_year', year).eq('leave_type', 'annual'),
+    ]);
+
+    const error = profileRes.error || leaveRes.error;
+    setLoadError(error ? describeDbError(error) : null);
+    setProfiles((profileRes.data || []) as Profile[]);
+    setRequests(((leaveRes.data || []) as LeaveRequest[]).filter((leave) => !leave.is_cancelled));
+    setLedger(ledgerRes.error ? [] : (ledgerRes.data || []) as LeaveLedgerEntry[]);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useRealtimeSync([{ table: 'leave_ledger' }, { table: 'leave_requests' }], () => load(true), {
+    channelKey: 'leave-quota',
+  });
+
+  const rows = useMemo(() => {
+    return profiles
+      .filter((p) => passesPeopleFilter(p, p.id, deptFilter, personFilter))
+      .map((p) => {
+        const mine = requests.filter((r) => r.user_id === p.id);
+        return { profile: p, balance: calculateLedgerBalance(ledger.filter((entry) => entry.user_id === p.id), mine, p.annual_leave_quota, year) };
+      });
+  }, [profiles, requests, ledger, deptFilter, personFilter, year]);
+
+  useEffect(() => { setPage(1); }, [deptFilter, personFilter]);
+  const currentPage = clampPage(page, rows.length);
+  const pagedRows = rows.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
+  const saveQuota = async (target: Profile, raw: string) => {
+    const quota = Number(raw);
+    if (raw.trim() === '' || !Number.isInteger(quota) || quota < 0 || quota > 365) {
+      toast('Hạn mức phải là số nguyên từ 0 đến 365.', 'error');
+      return;
+    }
+    if (quota === target.annual_leave_quota) return;
+
+    setSavingId(target.id);
+    const { error } = await supabase.rpc('set_annual_leave_quota', {
+      target_user: target.id,
+      quota,
+    });
+    setSavingId(null);
+
+    if (error) {
+      toast(describeDbError(error), 'error');
+      return;
+    }
+
+    setDrafts((prev) => {
+      const next = { ...prev };
+      delete next[target.id];
+      return next;
+    });
+    toast(`Đã đặt ${quota} ngày phép/năm cho ${target.name}`, 'success');
+    void load(true);
+  };
+
+  /** Đưa toàn bộ nhân sự về mức mặc định trong Cấu hình. */
+  const applyDefaultToAll = async () => {
+    const targets = profiles.filter((p) => p.annual_leave_quota !== defaultAnnualLeave);
+    if (targets.length === 0) {
+      toast(`Tất cả đã ở mức ${defaultAnnualLeave} ngày.`, 'success');
+      return;
+    }
+
+    const ok = await confirm({
+      title: `Đặt ${defaultAnnualLeave} ngày phép cho tất cả?`,
+      message: `${targets.length} người đang có hạn mức khác sẽ được đưa về ${defaultAnnualLeave} ngày/năm. Số phép đã dùng không đổi.`,
+      confirmLabel: 'Áp dụng',
+    });
+    if (!ok) return;
+
+    setSavingId('all');
+    // Tuần tự thay vì Promise.all: mỗi lệnh là một RPC riêng, chạy dồn dập dễ
+    // chạm giới hạn kết nối khi công ty đông người.
+    let failed = 0;
+    for (const p of targets) {
+      const { error } = await supabase.rpc('set_annual_leave_quota', {
+        target_user: p.id,
+        quota: defaultAnnualLeave,
+      });
+      if (error) failed++;
+    }
+    setSavingId(null);
+
+    if (failed > 0) toast(`${targets.length - failed} người đã cập nhật, ${failed} lỗi.`, 'warning');
+    else toast(`Đã áp dụng ${defaultAnnualLeave} ngày cho ${targets.length} người`, 'success');
+    void load(true);
+  };
+
+  if (loading) return <div className="p-5"><TableSkeleton /></div>;
+  if (loadError) {
+    return (
+      <div className="rounded-none border border-slate-200 bg-white">
+        <ErrorState message={loadError} onRetry={load} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="w-full sm:w-60">
+            <Dropdown
+              aria-label="Lọc theo phòng ban"
+              searchable
+              value={deptFilter}
+              options={departmentOptions(profiles)}
+              onChange={(value) => { setDeptFilter(value); setPersonFilter(''); }}
+            />
+          </div>
+          <div className="w-full sm:w-60">
+            <Dropdown
+              aria-label="Lọc theo nhân sự"
+              searchable
+              value={personFilter}
+              options={personOptions(profiles, deptFilter)}
+              onChange={setPersonFilter}
+            />
+          </div>
+        </div>
+        <Button variant="outline" onClick={applyDefaultToAll} disabled={savingId === 'all'}>
+          <RotateCcw className="w-4 h-4" />
+          {savingId === 'all' ? 'Đang áp dụng…' : `Đặt tất cả về ${defaultAnnualLeave} ngày`}
+        </Button>
+      </div>
+
+      <Card className="!rounded-none border-2 border-slate-400 dark:border-slate-600 shadow-sm">
+        <CardContent className="p-0">
+          {rows.length === 0 ? (
+            <p className="px-5 py-10 text-center text-sm font-bold text-slate-400">
+              Không có nhân sự nào khớp bộ lọc.
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr className="border-b-2 border-[#bf1f2b] dark:border-[#e66a76] bg-[#fdf2f4] dark:bg-[#201114] text-left text-xs font-black uppercase tracking-wider text-[#5c0f16] dark:text-[#fde8ea] shadow-[inset_0_-2px_0_#bf1f2b] dark:shadow-[inset_0_-2px_0_#e66a76]">
+                    <th className="px-2.5 py-1.5 min-w-[130px]"><div className="min-w-[130px] line-clamp-1">Nhân sự</div></th>
+                    <th className="w-24 min-w-[80px] border-l border-[#eed5d8] dark:border-[#4a1c22] px-1.5 py-1.5 text-center"><div className="min-w-[70px] text-center line-clamp-1">Hạn mức / năm</div></th>
+                    <th className="w-20 min-w-[65px] border-l border-[#eed5d8] dark:border-[#4a1c22] px-1 py-1.5 text-center"><div className="min-w-[60px] text-center line-clamp-1">Đã dùng</div></th>
+                    <th className="w-20 min-w-[65px] border-l border-[#eed5d8] dark:border-[#4a1c22] px-1 py-1.5 text-center"><div className="min-w-[60px] text-center line-clamp-1">Chờ duyệt</div></th>
+                    <th className="w-20 min-w-[65px] border-l border-[#eed5d8] dark:border-[#4a1c22] px-1 py-1.5 text-center"><div className="min-w-[60px] text-center line-clamp-1">Còn lại</div></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-300 dark:divide-slate-700 bg-white dark:bg-slate-900 font-semibold">
+                  {pagedRows.map(({ profile: p, balance }) => {
+                    const draft = drafts[p.id] ?? String(p.annual_leave_quota);
+                    const changed = Number(draft) !== p.annual_leave_quota;
+                    return (
+                      <tr key={p.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors">
+                        <td className="px-2.5 py-1">
+                          <div className="min-w-0">
+                            <p className="font-black text-slate-900 dark:text-slate-100 truncate text-xs">{p.name}</p>
+                            {p.department && (
+                              <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 truncate">{p.department}</p>
+                            )}
+                          </div>
+                        </td>
+                        <td className="border-l border-slate-300 dark:border-slate-700 px-1.5 py-1">
+                          <div className="flex items-center justify-center gap-1">
+                            <input
+                              type="number"
+                              min={0}
+                              max={60}
+                              value={draft}
+                              disabled={savingId === p.id}
+                              onChange={(e) => setDrafts((d) => ({ ...d, [p.id]: e.target.value }))}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') void saveQuota(p, draft);
+                              }}
+                              className="h-7 w-14 rounded-none border border-[#eed5d8] dark:border-[#4a1c22] bg-transparent px-1 text-center text-xs font-bold tabular-nums text-slate-900 dark:text-slate-100 focus:border-[#bf1f2b] focus:outline-none"
+                            />
+                            {savingId === p.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin text-indigo-600" />
+                            ) : (
+                              changed && (
+                                <Button size="sm" theme="admin" onClick={() => void saveQuota(p, draft)}>
+                                  Lưu
+                                </Button>
+                              )
+                            )}
+                          </div>
+                        </td>
+                        <td className="border-l border-slate-300 dark:border-slate-700 px-3 py-3 text-center text-sm font-black tabular-nums text-slate-700 dark:text-slate-300">{balance.used}</td>
+                        <td className="border-l border-slate-300 dark:border-slate-700 px-3 py-3 text-center text-sm font-black tabular-nums text-amber-600 dark:text-amber-400">
+                          {balance.pending || '—'}
+                        </td>
+                        <td className="border-l border-slate-300 dark:border-slate-700 px-3 py-3 text-center">
+                          <span
+                            className={`text-sm font-black tabular-nums ${
+                              balance.remaining === 0 ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'
+                            }`}
+                          >
+                            {balance.remaining}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      <Pager page={currentPage} total={rows.length} noun="người" onPage={setPage} />
+
+      <p className="text-xs text-slate-500">
+        Số liệu tính cho năm {year}. Sau khi áp dụng migration, số dư lấy từ sổ phát sinh
+        cấp phép, sử dụng, hoàn phép và điều chỉnh; nghỉ ốm/không lương không trừ hạn mức phép năm.
+      </p>
+    </div>
+  );
+}
