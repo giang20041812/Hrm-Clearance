@@ -1,0 +1,9 @@
+# <type>(<scope>): <mô tả ngắn, thể mệnh lệnh, <= 72 ký tự, không dấu chấm>
+#
+# Thân commit (tùy chọn): giải thích VÌ SAO thay đổi, không chép lại code.
+#
+# Breaking change: thêm "!" sau scope, hoặc dòng "BREAKING CHANGE: ..."
+#
+# type : feat | fix | docs | style | refactor | perf | test | build | ci | chore | revert
+# scope: auth | access | org | employee | leave | attendance | device | payroll | kpi
+#        project | recruitment | training | assistant | notify | db | deploy | ui | tooling

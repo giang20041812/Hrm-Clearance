@@ -1,0 +1,39 @@
+#!/bin/sh
+# Chặn push khi vi phạm quy ước. Thoát khác 0 = hủy push (commit vẫn còn dưới máy).
+#   1. Không để file môi trường (.env*) bị git theo dõi.
+#   2. Tên nhánh đẩy lên phải theo quy ước (xem CONTRIBUTING.md).
+#   3. (tùy chọn) HRM_PUSH_TYPECHECK=1 để chạy kiểm tra TypeScript trước khi push.
+
+leaked=$(git ls-files | grep -E '(^|/)\.env($|\.)' | grep -v '\.example$')
+if [ -n "$leaked" ]; then
+  echo "✗ HỦY PUSH — file môi trường đang bị git theo dõi:"
+  echo "$leaked" | sed 's/^/    /'
+  echo "  Gỡ ra bằng: git rm --cached <file>"
+  exit 1
+fi
+
+branch_pattern='^refs/heads/(main|develop|(feature|fix|hotfix|chore|docs|refactor|release)/[a-z0-9][a-z0-9._-]*)$'
+spec_terms='(br-?pay|fr-?[0-9]{2}|m0[0-9]|f0[0-9]{3,4}|srs|dmkl)'
+zero=0000000000000000000000000000000000000000
+while read -r local_ref local_sha remote_ref remote_sha; do
+  case "$remote_ref" in
+    refs/heads/*)
+      [ "$local_sha" = "$zero" ] && continue
+      if ! printf '%s' "$remote_ref" | grep -Eq "$branch_pattern"; then
+        echo "✗ HỦY PUSH — tên nhánh '${remote_ref#refs/heads/}' không đúng quy ước."
+        echo "  Dùng: feature/<tên>, fix/<tên>, hotfix/<tên>, chore/<tên>, docs/<tên>, refactor/<tên>, release/<x.y.z>"
+        exit 1
+      fi
+      if printf '%s' "${remote_ref#refs/heads/}" | grep -Eiq "(^|[/_.-])$spec_terms([/_.-]|\$)"; then
+        echo "✗ HỦY PUSH — tên nhánh đang dùng mã/thuật ngữ của tài liệu đặc tả."
+        exit 1
+      fi
+      ;;
+  esac
+done
+
+if [ "$HRM_PUSH_TYPECHECK" = "1" ]; then
+  echo "→ Kiểm tra type trước khi push..."
+  npx --no-install tsc -b --noEmit || { echo "✗ HỦY PUSH — TypeScript còn lỗi."; exit 1; }
+fi
+exit 0
